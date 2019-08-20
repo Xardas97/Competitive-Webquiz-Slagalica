@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+
+    <body>
+        <ui:composition template="./WEB-INF/footer_template.xhtml">
+
+            <ui:define name="content">
+                <h:outputStylesheet library="css" name="style.css"/>
+                <script>
+                    setInterval(function(){
+                        document.getElementById("hiddenForm:checkIfAcceptedButton").click();
+                    }, 1000);
+                </script>
+
+                <h:form>
+                    <p:commandButton value="Return to Main Menu" action="#{MainMenuController.returnToMenu()}" ajax="false"/>
+                    <hr/>
+                    <p:commandButton value="Start Hosting" action="#{HostingController.startHosting()}"/>
+                    <p:commandButton value="Stop Hosting" action="#{HostingController.stopHosting()}"/>
+                </h:form>
+                <h:outputText id="waitingMessage" value="#{HostingController.message}" style="color: aliceblue"/>
+
+                <h:form id="hiddenForm" style="display:none">
+                    <p:commandButton id="checkIfAcceptedButton" action="#{HostingController.checkIfAccepted()}"
+                                     update="waitingMessage"/>
+                </h:form>
+            </ui:define>
+
+        </ui:composition>
+    </body>
+</html>

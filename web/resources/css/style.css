@@ -1,0 +1,140 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Jun 29, 2019, 12:50:58 PM
+    Author     : Marko
+*/
+
+body {
+    background-color: #80ff80;
+    background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.9)), url(#{request.contextPath}/resources/images/questionmark.png);
+    background-size: cover;                      /* <------ */
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+footer {
+    background-image: linear-gradient(rgba(26, 26, 26, 0.7), rgba(51, 51, 51, 0.7));
+    color: aliceblue;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 35px;
+    width: 100%;
+    overflow: hidden;
+    font-size: 9px;
+    font-family: sans-serif
+}
+
+header {
+    background-image: linear-gradient(rgba(240, 248, 255, 0.8), rgba(240, 248, 255, 0));
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 35px;
+    width: 100%;
+    overflow: hidden;
+}
+
+/*----------
+------------
+---UI CSS---
+------------
+-----------*/
+
+.ui-datatable thead th, .ui-datatable tbody td, .ui-datatable tfoot td, .ui-datatable tfoot th{
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
+}
+
+.ui-widget-header {
+    background: #80ff80; 
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0px;
+}
+
+.ui-widget tbody tr{
+    background-color: rgba(0, 0, 0, 0);
+    color: aliceblue;
+}
+
+.ui-tabmenu .ui-tabmenu-nav {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.ui-widget-content a {
+    color: aliceblue;
+}
+
+.ui-datatable tbody.ui-datatable-data {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.ui-panelgrid .ui-panelgrid-cell {
+    background-color: #80ff80;
+    border-width: 0px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.ui-widget-content{
+    color: aliceblue;
+    border: #80ff80;
+    border: 0px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+
+/*----------
+------------
+colored rows 
+------------
+-----------*/
+
+.colored td{ 
+    background-color: blueviolet;
+}
+
+.coloredVictory td{ 
+    background-color: #2eb82e;
+}
+
+.coloredDefeat td{
+    background-color: coral;
+}
+
+.coloredNeutral td{
+    background-color: cadetblue;
+}
+
+.tableNoHeader thead {
+    display:none;
+}
+
+.coloredBlue {
+    color: #036fab;
+}
+
+.coloredBlueButton{
+    background: #036fab;
+}
+
+.coloredRed {
+    color: red;
+}
+
+.coloredRedButton {
+    background: red;
+}
+
+.coloredActive{
+    color: blueviolet;
+}

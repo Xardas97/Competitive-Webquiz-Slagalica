@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+
+    <body>
+        <ui:composition template="./WEB-INF/footer_template.xhtml">
+            
+            <ui:define name="content">
+                <h:outputStylesheet library="css" name="style.css"/>
+
+                <h:form>
+                    <p:tabMenu id="superTabMenu" activeIndex="#{SuperController.pageTab}">
+                        <p:menuitem value="Slagalica" action="#{SuperController.setPageTab(0)}"
+                                    update="superTabMenu superForms"/>
+                        <p:menuitem value="Spojnice" action="#{SuperController.setPageTab(1)}"
+                                    update="superTabMenu superForms"/>
+                        <p:menuitem value="Asocijacije" action="#{SuperController.setPageTab(2)}"
+                                    update="superTabMenu superForms"/>
+                    </p:tabMenu>
+                </h:form>
+                <p:outputPanel id="superForms">
+                    <!--******* 
+                    *Slagalica*
+                    ********-->
+                    <br/>
+                    <h:form rendered="#{SuperController.isMyPage(0)}">
+                        <h:outputText value="Upload a file with the acceptable words" style="color: aliceblue"/>
+                        <br/><br/>
+                        <p:fileUpload update="content" auto="true" style="width:500px;" 
+                                      fileUploadListener="#{SuperController.handleUpload}"/>
+                        <br/>
+                        <p:panel id="content" style="border:none;">
+                            <p:outputPanel rendered="#{SuperController.fileName ne null}">
+                                <p:commandButton value="Submit" action="#{SuperController.submitSlagalica()}"/>
+                                <h4>File name:</h4>
+                                #{SuperController.fileName}
+                                <h4>File content:</h4>
+                                #{SuperController.fileContent}
+                            </p:outputPanel>
+                        </p:panel>
+                    </h:form>
+                    <!--******** 
+                    **Spojnice**
+                    *********-->
+                    <h:form rendered="#{SuperController.isMyPage(1)}"> 
+                        <div style="float: left; margin-left: 15%">
+                            <h:outputText value="Game text:" 
+                                          style="color: aliceblue;"/><br/>
+                            <p:inputTextarea value="#{SuperController.text}" required="true"
+                                             style="margin-top: 5%"/><br/><br/>
+                            <br/>
+                            <p:commandButton update="superForms" value="Submit" action="#{SuperController.submitSpojnice()}"/>
+                        </div>
+                        <div>
+                            <h:outputText value="Word pairs:"
+                                          style="color: aliceblue; float: right; margin-right: 51.5%; margin-bottom: 1%"/>
+                            <br/>
+                            <p:dataTable value="#{SuperController.pairs}" var="pair"  
+                                         style="width: 42%; float: right; margin-right: 18%;">
+                                <p:column>
+                                    <p:inputText value="#{pair[0]}" required="true" 
+                                                 style="height: 14px; margin-right: 5px; margin-bottom: 1%"/>
+                                    <p:inputText value="#{pair[1]}" required="true" 
+                                                 style="height: 14px"/>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                        <br/><br/>
+                    </h:form>
+                    <!--********* 
+                    *Asocijacije*
+                    **********-->
+                    <h:form rendered="#{SuperController.isMyPage(2)}"> 
+                        <p:dataTable style="width: 90%; margin-left: 5%" value="#{SuperController.columns}" var="column">
+                            <p:column>
+                                 <p:inputText value="#{column[0]}" required="true" style="width: 195px"/>
+                            </p:column>
+                            <p:column>
+                                 <p:inputText value="#{column[1]}" required="true" style="width: 195px"/>
+                            </p:column>
+                            <p:column>
+                                 <p:inputText value="#{column[2]}" required="true" style="width: 195px"/>
+                            </p:column>
+                            <p:column>
+                                 <p:inputText value="#{column[3]}" required="true" style="width: 195px"/>
+                            </p:column>
+                        </p:dataTable>
+                        <div style="margin-left: 5%; margin-top: 20px">
+                            <p:inputTextarea value="#{SuperController.result[0]}" style="float: left; width: 19.7% ;"/>
+                            <p:inputTextarea value="#{SuperController.result[1]}" style="float: left; width: 19.7%; margin-left: 3%"/>
+                            <p:inputTextarea value="#{SuperController.result[2]}" style="float: left; width: 19.7%; margin-left: 3%"/>
+                            <p:inputTextarea value="#{SuperController.result[3]}" style="float: left; width: 19.7%; margin-left: 3%;"/>
+                        </div>
+                        <p:inputText value="#{SuperController.resultEnd}" style="width: 86.3%; margin-left: 5%; margin-top: 20px; height: 30px"/>
+                        <center style="margin-top: 20px"><p:commandButton action="#{SuperController.submitAsocijacije()}" 
+                                                                          value="Submit" update="superForms" /></center>
+                    </h:form>
+                </p:outputPanel>
+                <br/>
+            </ui:define>
+            
+        </ui:composition>
+    </body>
+</html>
