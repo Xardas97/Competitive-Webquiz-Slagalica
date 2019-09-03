@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html
+        xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>Facelet Title</title>
+    </h:head>
+    <h:body>
+        <h:form id="skocko" rendered="#{GameController.isMyPage('Skocko')}">
+            <div>
+                <p:commandButton value="#{GameController.getSkockoSymbol(0)}"
+                                           action="#{GameController.chooseSymbol(0)}"
+                                           disabled="#{!GameController.skockoButtonsAvailable}"
+                                           update="skocko"/>
+                <p:commandButton value="#{GameController.getSkockoSymbol(1)}"
+                                           action="#{GameController.chooseSymbol(1)}"
+                                           disabled="#{!GameController.skockoButtonsAvailable}"
+                                           update="skocko"/>
+                <p:commandButton value="#{GameController.getSkockoSymbol(2)}"
+                                           action="#{GameController.chooseSymbol(2)}"
+                                           disabled="#{!GameController.skockoButtonsAvailable}"
+                                           update="skocko"/>
+                <p:commandButton value="#{GameController.getSkockoSymbol(3)}"
+                                           action="#{GameController.chooseSymbol(3)}"
+                                           disabled="#{!GameController.skockoButtonsAvailable}"
+                                           update="skocko"/>
+               <p:commandButton value="#{GameController.getSkockoSymbol(4)}"
+                                           action="#{GameController.chooseSymbol(4)}"
+                                           disabled="#{!GameController.skockoButtonsAvailable}"
+                                           update="skocko"/>
+                <p:commandButton value="#{GameController.getSkockoSymbol(5)}"
+                                           action="#{GameController.chooseSymbol(5)}"
+                                           disabled="#{!GameController.skockoButtonsAvailable}"
+                                           update="skocko"/>
+            </div>
+            <p:panelGrid columns="2" style="margin-top: 2%;">
+                <h:outputText value="#{GameController.getSkockoRow(0)}"/> 
+                <h:outputText value="#{GameController.getSkockoOutputRow(0)}"/>
+                <h:outputText value="#{GameController.getSkockoRow(1)}"/>
+                <h:outputText value="#{GameController.getSkockoOutputRow(1)}"/>
+                <h:outputText value="#{GameController.getSkockoRow(2)}"/>
+                <h:outputText value="#{GameController.getSkockoOutputRow(2)}"/>
+                <h:outputText value="#{GameController.getSkockoRow(3)}"/>
+                <h:outputText value="#{GameController.getSkockoOutputRow(3)}"/>
+                <h:outputText value="#{GameController.getSkockoRow(4)}"/>
+                <h:outputText value="#{GameController.getSkockoOutputRow(4)}"/>
+                <h:outputText value="#{GameController.getSkockoRow(5)}"/>
+                <h:outputText value="#{GameController.getSkockoOutputRow(5)}"/>
+            </p:panelGrid>
+            <p:panelGrid columns="2" style="margin-top: 2%; margin-bottom: 2%;">
+                <h:outputText value="#{GameController.getSkockoRow(6)}" rendered="#{GameController.modeMultiplayer}"/>
+                <h:outputText value="#{GameController.getSkockoOutputRow(6)}" rendered="#{GameController.modeMultiplayer}"/>                    
+            </p:panelGrid>
+            <p:commandButton value="Reset" action="#{GameController.resetSkockoRow()}" update="skocko"
+                             disabled="#{!GameController.skockoResetButtonAvailable}"/>
+            <p:commandButton value="Submit" action="#{GameController.submitSkockoRow()}" update="skocko"
+                             disabled="#{!GameController.skockoSubmitButtonAvailable}"/>
+            <br/>
+            <p:outputPanel style="margin-top: 2%; color: aliceblue" rendered="#{GameController.waitingPeriod}">
+                <h:outputText value="Corrent Combo:" style="margin-bottom: 1%"/> <br/>
+                <h:outputText value="#{GameController.secretCombo[0]}" style="margin-right: 2%; width: 5%"/>
+                <h:outputText value="#{GameController.secretCombo[1]}" style="margin-right: 2%; width: 5%"/>
+                <h:outputText value="#{GameController.secretCombo[2]}" style="margin-right: 2%; width: 5%"/>
+                <h:outputText value="#{GameController.secretCombo[3]}" style="width: 5%"/>
+            </p:outputPanel>
+        </h:form>
+    </h:body>
+</html>
+

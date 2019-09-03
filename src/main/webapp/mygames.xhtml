@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html
+        xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+
+    <body>
+        <ui:composition template="./WEB-INF/footer_template.xhtml">
+
+            <ui:define name="content">      
+                <h:outputStylesheet library="css" name="style.css"/>  
+
+                <h:form>
+                    <p:commandButton value="Return to Main Menu" action="#{MainMenuController.returnToMenu()}" ajax="false"/>
+                    <p:dataTable value="#{MyGamesController.myGames}" var="myGame" 
+                                 style="margin-top: 2%; margin-bottom: 10%">
+                        <p:column headerText="Opponent">
+                            <div style="text-align: center;"><h:outputText value="#{myGame.opponent}"/></div>
+                        </p:column>
+                        <p:column headerText="Side">
+                             <div style="text-align: center;"><h:outputText value="#{myGame.side}"/></div>
+                        </p:column>
+                        <p:column headerText="My Points">
+                             <div style="text-align: center;"><h:outputText value="#{myGame.myPoints}"/></div>
+                        </p:column>
+                        <p:column headerText="Opponent Points">
+                             <div style="text-align: center;"><h:outputText value="#{myGame.opponentPoints}"/></div>
+                        </p:column>
+                        <p:column headerText="Result">
+                            <div style="text-align: center;"> <h:outputText value="#{myGame.result}"/></div>
+                        </p:column>
+                        <p:column headerText="Date">
+                             <div style="text-align: center;"><h:outputText value="#{myGame.date}"/></div>
+                        </p:column>
+                    </p:dataTable>
+                </h:form>
+            </ui:define>
+            
+        </ui:composition>
+    </body>
+</html>
