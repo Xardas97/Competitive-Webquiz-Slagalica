@@ -458,47 +458,6 @@ public class GameController implements Serializable {
      ***** Skocko *****
      */
 
-    private void skockoTicks() {
-        Session session = openTransaction();
-        SkockoVariables skockoVars = mySkockoVars(session, username);
-
-        if ((bluePlaying && !playerBlue) || (!bluePlaying && playerBlue)) {
-            boolean opponentHit =
-                    skocko.setInputAndFeedbackAndReturnIfCompleted(skockoVars.getInputCombos(), skockoVars.getOutputCombos());
-
-            if (opponentHit) {
-                timer = 3;
-                waitingPeriod = true;
-            } else {
-                if (skockoVars.isSidePlayerDone()) {
-                    timer = 3;
-                    waitingPeriod = true;
-                }
-                if (bluePlaying != skockoVars.isBluePlaying()) {
-                    timer = 60;
-                    bluePlaying = !bluePlaying;
-                    skocko.setCurrentRow(6);
-                }
-            }
-
-            if (timer < 0) {
-                timer = 0;
-            }
-        } else if (timer == 0) {
-            if(skocko.getCurrentRow() == 6){
-                skockoVars.setSidePlayerDone(true);
-                waitingPeriod = true;
-                timer = 3;
-            }
-            else{
-                skockoVars.setBluePlaying(!bluePlaying);
-                bluePlaying = !bluePlaying;
-                timer = 60;
-            }
-        }
-        closeTransaction(session);
-    }
-
     public String getSkockoSymbol(int i) {
         return Skocko.getSymbol(i);
     }
@@ -572,63 +531,54 @@ public class GameController implements Serializable {
         return skocko.getSecretCombo();
     }
 
+    private void skockoTicks() {
+        Session session = openTransaction();
+        SkockoVariables skockoVars = mySkockoVars(session, username);
+
+        if (!myTurn()) {
+            skocko.setInputAndFeedback(skockoVars.getInputCombos(), skockoVars.getOutputCombos());
+
+            finishGameIfOpponentFinished(skocko, skockoVars);
+        }
+        else if(timer==0) {
+                finishSidePlayerG(skocko, skockoVars);
+            }
+        closeTransaction(session);
+    }
+
     /*
      ***** Spojnice *****
      */
 
     private void spojniceTicks() {
-        if ((bluePlaying && !playerBlue) || (!bluePlaying && playerBlue)) {
-            if(spojnice.getSidePlayer() == null){
+        Session session = openTransaction();
+        SpojniceVariables spojniceVars = mySpojniceVars(session, username);
+
+        if (!myTurn()) {
+            if(spojnice.isSidePlayer() == null){
                 spojnice.setSidePlayer(Boolean.TRUE);
             }
             spojnice.setActiveLeft(10);
-            Session session = openTransaction();
 
-            SpojniceVariables spojniceVars = mySpojniceVars(session, username);
-
-            boolean opponentHit;
 
             if(playerBlue) {
-                opponentHit = spojnice.setHitByRedAndReturnIfCompleted(spojniceVars.getHitByRed());
+                spojnice.setHitByRed(spojniceVars.getHitByRed());
             }
             else {
-                opponentHit = spojnice.setHitByBlueAndReturnIfCompleted(spojniceVars.getHitByBlue());
+                spojnice.setHitByBlue(spojniceVars.getHitByBlue());
             }
 
-            if (opponentHit) {
-                timer = 3;
-                waitingPeriod = true;
-            } else {
-                if (spojniceVars.isSidePlayerDone()) {
-                    waitingPeriod = true;
-                    timer = 3;
-                }
+            finishGameIfOpponentFinished(spojnice, spojniceVars);
 
-                if (bluePlaying != spojniceVars.isBluePlaying()) {
-                    timer = 60;
-                    bluePlaying = !bluePlaying;
-                    spojnice.updateActivePointer();
-                }
+        } else {
+            if(spojnice.isSidePlayer() == null){
+                spojnice.setSidePlayer(Boolean.FALSE);
             }
-
-            closeTransaction(session);
-
-            if (timer < 0) {
-                timer = 0;
-            }
-        } else{
-            if(spojnice.getSidePlayer() == null) spojnice.setSidePlayer(Boolean.FALSE);
-            if (timer == 0) {
-                Session session = openTransaction();
-
-                SpojniceVariables spojniceVars = mySpojniceVars(session, username);
-                spojniceVars.setBluePlaying(!bluePlaying);
-                bluePlaying = !bluePlaying;
-
-                closeTransaction(session);
-                timer = 60;
+            if(timer == 0) {
+                finishSidePlayerG(spojnice, spojniceVars);
             }
         }
+        closeTransaction(session);
     }
 
     public String getLeftWord(int i){
@@ -654,16 +604,7 @@ public class GameController implements Serializable {
                 timer = 3;
             }
             else if(spojnice.getActiveLeft() > 9){
-                if(!spojnice.getSidePlayer()){
-                    spojniceVars.setBluePlaying(!bluePlaying);
-                    bluePlaying = !bluePlaying;
-                    timer = 60;
-                }
-                else {
-                    spojniceVars.setSidePlayerDone(true);
-                    timer = 3;
-                    waitingPeriod = true;
-                }
+                finishSidePlayerG(spojnice, spojniceVars);
             }
 
             closeTransaction(session);
@@ -694,31 +635,8 @@ public class GameController implements Serializable {
      **** Asocijacije ****
      */
 
-    public void submitAsocijacije() {
-        asocijacije.submit(playerBlue);
-        if(asocijacije.isCompleted()){
-            waitingPeriod = true;
-            timer = 3;
-        }
-
-        if(modeMultiplayer){
-            Session session = openTransaction();
-
-            AsocijacijeVariables asocijacijeVars = myAsocijacijeVars(session, username);
-            if(asocijacije.wasHit()){
-                asocijacijeVars.setMessage(asocijacije.getOpened(), asocijacije.getRevealedByPlayer(playerBlue), !bluePlaying);
-                bluePlaying = !bluePlaying;
-            }
-            else {
-                asocijacijeVars.setMessage(asocijacije.getOpened(), asocijacije.getRevealedByPlayer(playerBlue), bluePlaying);
-            }
-
-            closeTransaction(session);
-        }
-    }
-
     private void asocijacijeTicks(){
-        if ((bluePlaying && !playerBlue) || (!bluePlaying && playerBlue)) {
+        if (!myTurn()) {
             Session session = openTransaction();
 
             AsocijacijeVariables asocijacijeVars = myAsocijacijeVars(session, username);
@@ -747,6 +665,29 @@ public class GameController implements Serializable {
             asocijacije.openAll();
             waitingPeriod = true;
             timer = 3;
+        }
+    }
+
+    public void submitAsocijacije() {
+        asocijacije.submit(playerBlue);
+        if(asocijacije.isCompleted()){
+            waitingPeriod = true;
+            timer = 3;
+        }
+
+        if(modeMultiplayer){
+            Session session = openTransaction();
+
+            AsocijacijeVariables asocijacijeVars = myAsocijacijeVars(session, username);
+            if(asocijacije.wasHit()){
+                asocijacijeVars.setMessage(asocijacije.getOpened(), asocijacije.getRevealedByPlayer(playerBlue), !bluePlaying);
+                bluePlaying = !bluePlaying;
+            }
+            else {
+                asocijacijeVars.setMessage(asocijacije.getOpened(), asocijacije.getRevealedByPlayer(playerBlue), bluePlaying);
+            }
+
+            closeTransaction(session);
         }
     }
 
@@ -821,8 +762,48 @@ public class GameController implements Serializable {
         return waitingPeriod;
     }
 
+    /*
+     ***** Private Helpers *****
+     */
+
     private boolean canPlay() {
-        return ((playerBlue && bluePlaying) || (!playerBlue && !bluePlaying))
-                && !waitingPeriod;
+        return myTurn() && !waitingPeriod;
+    }
+
+    private boolean myTurn() {
+        return (bluePlaying && playerBlue) || (!bluePlaying && !playerBlue);
+    }
+
+    private void finishGameIfOpponentFinished(SidePlayerGame spg, SidePlayerGameVariables spgv) {
+        if (spg.isCompleted()) {
+            timer = 3;
+            waitingPeriod = true;
+        } else {
+            if (spgv.isSidePlayerDone()) {
+                timer = 3;
+                waitingPeriod = true;
+            }
+            if (bluePlaying != spgv.isBluePlaying()) {
+                timer = 60;
+                bluePlaying = !bluePlaying;
+                spg.getReadyForSidePlayer();
+            }
+        }
+
+        if (timer < 0) {
+            timer = 0;
+        }
+    }
+
+    private void finishSidePlayerG(SidePlayerGame spg, SidePlayerGameVariables spgv) {
+        if (spg.isSidePlayer()) {
+            spgv.setSidePlayerDone(true);
+            waitingPeriod = true;
+            timer = 3;
+        } else {
+            spgv.setBluePlaying(!bluePlaying);
+            bluePlaying = !bluePlaying;
+            timer = 60;
+        }
     }
 }

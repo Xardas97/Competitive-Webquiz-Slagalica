@@ -5,9 +5,9 @@
       xmlns:p="http://primefaces.org/ui">
 
     <body>
-        <ui:composition template="./WEB-INF/footer_template.xhtml">
+        <ui:composition template="../footer_template.xhtml">
 
-            <ui:define name="top"></ui:define>
+            <ui:define name="top"/>
             <ui:define name="content">
                 <h:outputStylesheet library="css" name="style.css"/>
                 <script type="text/javascript">
@@ -20,7 +20,7 @@
                     <!--Timer-->
                     <h:outputText id="timer" value="#{GameController.timer}" rendered="#{GameController.gameInProgress}"
                                   style="color: aliceblue; font-size: 30px"/>
-                    <hr rendered="#{GameController.gameInProgress}"/>
+                    <hr/> <!--rendered="#{GameController.gameInProgress}"/>-->
                     <!--Waiting-->
                     <h:form rendered="#{GameController.isMyPage('Waiting')}">
                         <h:outputText value="Waiting for the next game to start..." style="color: aliceblue"/>

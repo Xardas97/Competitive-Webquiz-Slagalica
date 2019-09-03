@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html
+        xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+
+    <body>
+        <ui:composition template="../footer_template.xhtml">
+
+            <ui:define name="content">
+                <h:outputStylesheet library="css" name="style.css"/>
+
+                <h:form>
+                    <p:panelGrid columns="1">
+                        <p:commandButton value="New Game"  disabled="#{MainMenuController.guest}"
+                                         action="#{MainMenuController.hostGame()}"/>
+                        <p:commandButton value="Join Game" disabled="#{MainMenuController.guest}"
+                                         action="#{MainMenuController.browseGames()}"/>
+                        <p:commandButton value="Game of the Day"  disabled="#{MainMenuController.guest}" 
+                                         action="#{MainMenuController.startGameOfTheDay()}" update="errorMessage"/>
+                        <p:commandButton value="My Games" disabled="#{MainMenuController.guest}"
+                                         action="#{MainMenuController.browseMyGames()}"/>
+                        <p:commandButton value="GotD Ranklist" disabled="#{MainMenuController.guest}"
+                                         action="#{MainMenuController.browseSingleplayerRanklist()}"/>
+                        <p:commandButton value="Multiplayer Ranklist"
+                                         action="#{MainMenuController.browseMultiplayerRanklist()}"/>
+                        <h:outputText id="errorMessage" value="#{MainMenuController.errorMessage}" style="color: red"/>
+                    </p:panelGrid>
+                </h:form>
+            </ui:define>
+
+        </ui:composition>
+    </body>
+</html>

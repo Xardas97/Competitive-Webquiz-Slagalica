@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html
+        xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+
+    <body>
+        <ui:composition template="../footer_template.xhtml">
+
+            <ui:define name="content">
+                <h:outputStylesheet library="css" name="style.css"/>
+
+                <h:form><p:commandButton value="Return to Main Menu" action="#{MainMenuController.returnToMenu()}" 
+                                         ajax="false" style="margin-bottom: 2%"/></h:form>
+
+                <h:form>
+                    <p:tabMenu id="rankingTabMenu" activeIndex="#{MultiplayerRanklistController.rankingPage}">
+                        <p:menuitem value="Weekly Rankings" action="#{MultiplayerRanklistController.setRankingPage(0)}"
+                                    update="rankingTabMenu rankingPanel"/>
+                        <p:menuitem value="MonthlyRankings" action="#{MultiplayerRanklistController.setRankingPage(1)}"
+                                    update="rankingTabMenu rankingPanel"/>
+                    </p:tabMenu>
+                </h:form>  
+                <p:outputPanel id="rankingPanel">
+                    <p:dataTable value="#{MultiplayerRanklistController.users}" var="user" rowIndexVar="index">
+                        <p:column headerText="Placement">
+                            <div style="text-align: center;"><h:outputText value="#{index+1}"/></div>
+                        </p:column>
+                        <p:column headerText="User">
+                            <div style="text-align: center;"><h:outputText value="#{user.username}"/></div>
+                        </p:column>
+                        <p:column headerText="Victories">
+                            <div style="text-align: center;"><h:outputText value="#{user.victories}"/></div>
+                        </p:column>
+                        <p:column headerText="Defeats">
+                            <div style="text-align: center;"><h:outputText value="#{user.defeats}"/></div>
+                        </p:column>
+                        <p:column headerText="Draws">
+                            <div style="text-align: center;"><h:outputText value="#{user.draws}"/></div>
+                        </p:column>
+                        <p:column headerText="Average Score">
+                            <div style="text-align: center;"><h:outputText value="#{user.averageScore}"/></div>
+                        </p:column>
+                        <p:column headerText="Total Score">
+                            <div style="text-align: center;"><h:outputText value="#{user.totalScore}"/></div>
+                        </p:column>
+                    </p:dataTable>
+                </p:outputPanel>
+                <br/>
+            </ui:define>
+
+        </ui:composition>
+    </body>
+</html>

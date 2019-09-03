@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html
+        xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+
+    <body>
+        <ui:composition template="../footer_template.xhtml">
+            
+            <ui:define name="content">
+                <h:outputStylesheet library="css" name="style.css"/>
+
+                <h:form>
+                    <p:commandButton value="Return to Main Menu" action="#{MainMenuController.returnToMenu()}" ajax="false"/>
+                    <p:commandButton value="Refresh" action="#{GamelistController.initGames()}" update="gamelist"/>
+                    <p:dataTable id="gamelist" value="#{GamelistController.games}" var="game" style="width: 30%">
+                        <p:column headerText="User">
+                            <div style="text-align: center;"><h:outputText value="#{game}"/></div>
+                        </p:column>
+                        <p:column>
+                            <div style="text-align: center;"><p:commandButton value="Join" action="#{GamelistController.join(game)}" ajax="false"/></div>
+                        </p:column>
+                    </p:dataTable>
+                </h:form>
+            </ui:define>
+
+        </ui:composition>
+    </body>
+</html>

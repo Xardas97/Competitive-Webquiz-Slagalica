@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html
+        xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <body>
+        <ui:composition template="../footer_template.xhtml">
+            <ui:define name="top"/>
+            
+            <ui:define name="content">
+                <h:outputStylesheet library="css" name="style.css"/>
+                <div style="text-align: center;"><h:form>
+                    <p:tabMenu id="tabMenu" activeIndex="#{LoginController.firstPageTab}">
+                        <p:menuitem value="Login" action="#{LoginController.setFirstPageTab(0)}"
+                                    update="tabMenu forms"/>
+                        <p:menuitem value="Register" action="#{LoginController.setFirstPageTab(1)}"
+                                    update="tabMenu forms"/>
+                        <p:menuitem value="Change Password" action="#{LoginController.setFirstPageTab(2)}"
+                                    update="tabMenu forms"/>
+                    </p:tabMenu>
+                </h:form></div>
+                <br/><br/><br/><br/>
+                
+                <p:outputPanel id="forms">
+                    <!-- Login -->
+                    <div style="text-align: center;"><h:form id="loginForm">
+                        <p:panelGrid id="loginGrid" rendered="#{LoginController.isMyPage(0)}" columns="1">
+                            <p:inputText placeholder="Username" value="#{LoginController.username}"/>
+                            <p:password placeholder="Password" value="#{LoginController.password}"/>
+                            <p:commandButton value="Login" action="#{LoginController.login()}" ajax="false"/>
+                            <p:outputLabel value="#{LoginController.errorMessage}" style="color: red"/>
+                            <p:commandLink action="#{LoginController.enterAsGuest()}" rendered="#{LoginController.isMyPage(0)}" 
+                                                   value="Enter as Guest" ajax="false"/>
+                        </p:panelGrid>
+                    </h:form></div>
+                    <!-- Register -->
+                    <div style="text-align: center;"><h:form style="width: 440px" enctype="multipart/form-data">
+                        <p:panelGrid rendered="#{LoginController.isMyPage(1)}" columns="2">
+                            <p:inputText  value="#{LoginController.firstName}" placeholder="First Name" required="true"/>
+                            <p:inputText value="#{LoginController.lastName}" placeholder="Last Name" required="true"/>
+                            <p:inputText value="#{LoginController.username}" placeholder="Username" required="true"/>
+                            <p:inputText value="#{LoginController.email}" placeholder="E-mail adress" required="true"/>
+                            <p:inputText value="#{LoginController.profession}" placeholder="Profession"/>
+                            <p:datePicker value="#{LoginController.birthday}" placeholder="Birthday Date"/>
+                            <p:password feedback="true" value="#{LoginController.password}" placeholder="Password" required="true">
+                                <f:validateRegex pattern="^(?=[a-zA-Z0-9])((?!.*(.)\1\1\1)(?=(.*[a-z]){3,})(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&amp;])[A-Za-z\d@$!%*?&amp;]{8,16})$"/>
+                            </p:password>
+                            <p:password value="#{LoginController.confirmPassword}" placeholder="Confirm Password" required="true"/>
+                            <p:selectOneRadio value="#{LoginController.gender}" style="font-size: 16px">
+                                <f:selectItems value="#{LoginController.genderStates}"/>
+                            </p:selectOneRadio>
+                            <p:fileUpload mode="simple" value="#{LoginController.uploadedFile}"/>
+                            <p:commandButton value="Register" action="#{LoginController.register()}" ajax="false"/>
+                            <p:outputLabel value="#{LoginController.errorMessage}" style="color: red"/>
+                        </p:panelGrid>
+                    </h:form></div>
+                    <!-- Change Password -->
+                    <div style="text-align: center;"><h:form>
+                        <p:panelGrid rendered="#{LoginController.isMyPage(2)}" columns="1">
+                            <p:inputText placeholder="Username" value="#{LoginController.username}"/>
+                            <p:password placeholder="Old Password" value="#{LoginController.oldPassword}"/>
+                            <p:password placeholder="New Password" value="#{LoginController.password}">
+                                </p:password>
+                            <p:password placeholder="Confirm New Password" value="#{LoginController.confirmPassword}"/>
+                            <p:commandButton value="Confirm" ajax="false" action="#{LoginController.changePassword()}"/>
+                            <p:outputLabel value="#{LoginController.errorMessage}" style="color: red"/>
+                        </p:panelGrid>
+                    </h:form></div>
+                </p:outputPanel>
+            </ui:define>
+
+        </ui:composition>
+    </body>
+</html>

@@ -19,7 +19,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name="game_spojnice")
-public class SpojniceVariables implements GameVariables, Serializable{
+public class SpojniceVariables implements SidePlayerGameVariables, Serializable{
     @Id
     private
     String blue;
@@ -89,10 +89,12 @@ public class SpojniceVariables implements GameVariables, Serializable{
         this.pointsRed = pointsRed;
     }
 
+    @Override
     public boolean isBluePlaying() {
         return bluePlaying;
     }
 
+    @Override
     public void setBluePlaying(boolean bluePlaying) {
         this.bluePlaying = bluePlaying;
     }
@@ -129,10 +131,12 @@ public class SpojniceVariables implements GameVariables, Serializable{
         this.pairs = pairs;
     }
 
+    @Override
     public boolean isSidePlayerDone() {
         return sidePlayerDone;
     }
 
+    @Override
     public void setSidePlayerDone(boolean sidePlayerDone) {
         this.sidePlayerDone = sidePlayerDone;
     }

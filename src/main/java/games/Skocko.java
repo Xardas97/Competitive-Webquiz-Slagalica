@@ -1,6 +1,6 @@
 package games;
 
-public class Skocko {
+public class Skocko implements SidePlayerGame{
     private static final String[] SYMBOLS = {"Pik", "Tref", "Herc", "Karo", "Zvezda", "Skocko"};
     private final String[] secretCombo;
     private String[][] input;
@@ -67,13 +67,12 @@ public class Skocko {
         for(int i=0; i<4; i++) input[currentRow][i] = "x";
     }
 
-    public boolean setInputAndFeedbackAndReturnIfCompleted(String inputString, String feedbackString) {
+    public void setInputAndFeedback(String inputString, String feedbackString) {
         String[] temp = inputString.split("-");
         for (int i = 0; i < 7; i++) {
             input[i] = temp[i].split(" ");
         }
 
-        boolean completed = false;
         temp = feedbackString.split("-");
         for (int i = 0; i < 7; i++) {
             String[] temp2 = temp[i].split(" ");
@@ -84,7 +83,6 @@ public class Skocko {
                 completed = true;
             }
         }
-        return completed;
     }
 
     public String getRowAsString(int row) {
@@ -155,15 +153,22 @@ public class Skocko {
         return currentRow;
     }
 
-    public void setCurrentRow(int currentRow) {
-        this.currentRow = currentRow;
+    @Override
+    public Boolean isSidePlayer() {
+        return currentRow == 6;
     }
 
     public int getPoints() {
         return points;
     }
 
+    @Override
     public boolean isCompleted() {
         return completed;
+    }
+
+    @Override
+    public void getReadyForSidePlayer() {
+        currentRow = 6;
     }
 }

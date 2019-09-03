@@ -17,7 +17,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name="game_skocko")
-public class SkockoVariables implements GameVariables, Serializable{
+public class SkockoVariables implements SidePlayerGameVariables, Serializable{
     @Id
     private
     String red;
@@ -89,10 +89,12 @@ public class SkockoVariables implements GameVariables, Serializable{
         this.pointsRed = pointsRed;
     }
 
+    @Override
     public boolean isBluePlaying() {
         return bluePlaying;
     }
 
+    @Override
     public void setBluePlaying(boolean bluePlaying) {
         this.bluePlaying = bluePlaying;
     }
@@ -113,10 +115,12 @@ public class SkockoVariables implements GameVariables, Serializable{
         this.outputCombos = outputCombos;
     }
 
+    @Override
     public boolean isSidePlayerDone() {
         return sidePlayerDone;
     }
 
+    @Override
     public void setSidePlayerDone(boolean sidePlayerDone) {
         this.sidePlayerDone = sidePlayerDone;
     }

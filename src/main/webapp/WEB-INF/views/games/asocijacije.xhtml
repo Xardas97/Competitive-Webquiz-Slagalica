@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html
+        xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>Facelet Title</title>
+    </h:head>
+    <h:body>
+        <h:form id="asocijacije" rendered="#{GameController.isMyPage('Asocijacije')}" style="margin-left: 5%">
+            <div style="margin-bottom: 2%">
+                <p:commandButton value="#{GameController.getName(0)}" action="#{GameController.openField(0)}" 
+                                 update="asocijacije" style="width: 20%; margin-right: 2%; #{GameController.asocijacijeColor(0)}%" 
+                                 disabled="#{GameController.getOpenFieldDisabled(0)}"/>
+                <p:commandButton value="#{GameController.getName(4)}" action="#{GameController.openField(4)}" 
+                                 update="asocijacije" style="width: 20%; margin-right: 2%; #{GameController.asocijacijeColor(1)}" 
+                                 disabled="#{GameController.getOpenFieldDisabled(4)}"/>
+                <p:commandButton value="#{GameController.getName(8)}" action="#{GameController.openField(8)}" 
+                                 update="asocijacije" style="width: 20%; margin-right: 2%; #{GameController.asocijacijeColor(2)}" 
+                                 disabled="#{GameController.getOpenFieldDisabled(8)}"/>
+                <p:commandButton value="#{GameController.getName(12)}" action="#{GameController.openField(12)}" 
+                                 update="asocijacije" style="width: 20%; #{GameController.asocijacijeColor(3)}" 
+                                 disabled="#{GameController.getOpenFieldDisabled(12)}"/>
+                <br/>
+                <p:commandButton value="#{GameController.getName(1)}" action="#{GameController.openField(1)}" 
+                                 update="asocijacije" style="width: 20%; margin-right: 2%; #{GameController.asocijacijeColor(4)}%"
+                                 disabled="#{GameController.getOpenFieldDisabled(1)}"/>
+                <p:commandButton value="#{GameController.getName(5)}" action="#{GameController.openField(5)}" 
+                                 update="asocijacije" style="width: 20%; margin-right: 2%; #{GameController.asocijacijeColor(5)}%"
+                                 disabled="#{GameController.getOpenFieldDisabled(5)}"/>
+                <p:commandButton value="#{GameController.getName(9)}" action="#{GameController.openField(9)}" 
+                                 update="asocijacije" style="width: 20%; margin-right: 2%; #{GameController.asocijacijeColor(6)}%"
+                                 disabled="#{GameController.getOpenFieldDisabled(9)}"/>
+                <p:commandButton value="#{GameController.getName(13)}" action="#{GameController.openField(13)}" 
+                                 update="asocijacije" style="width: 20%; #{GameController.asocijacijeColor(7)}"
+                                 disabled="#{GameController.getOpenFieldDisabled(13)}"/>
+                <br/>
+                <p:commandButton value="#{GameController.getName(2)}" action="#{GameController.openField(2)}" 
+                                 update="asocijacije" style="width: 20%; margin-right: 2%; #{GameController.asocijacijeColor(8)}%"
+                                 disabled="#{GameController.getOpenFieldDisabled(2)}"/>
+                <p:commandButton value="#{GameController.getName(6)}" action="#{GameController.openField(6)}" 
+                                 update="asocijacije" style="width: 20%; margin-right: 2%; #{GameController.asocijacijeColor(9)}"
+                                 disabled="#{GameController.getOpenFieldDisabled(6)}"/>
+                <p:commandButton value="#{GameController.getName(10)}" action="#{GameController.openField(10)}" 
+                                 update="asocijacije" style="width: 20%; margin-right: 2%; #{GameController.asocijacijeColor(10)}"
+                                 disabled="#{GameController.getOpenFieldDisabled(10)}"/>
+                <p:commandButton value="#{GameController.getName(14)}" action="#{GameController.openField(14)}" 
+                                 update="asocijacije" style="width: 20%; #{GameController.asocijacijeColor(11)}"
+                                 disabled="#{GameController.getOpenFieldDisabled(14)}"/>
+                <br/>
+                <p:commandButton value="#{GameController.getName(3)}" action="#{GameController.openField(3)}" 
+                                 update="asocijacije" style="width: 20%; margin-right: 2%; #{GameController.asocijacijeColor(12)}"
+                                 disabled="#{GameController.getOpenFieldDisabled(3)}"/>
+                <p:commandButton value="#{GameController.getName(7)}" action="#{GameController.openField(7)}" 
+                                 update="asocijacije" style="width: 20%; margin-right: 2%; #{GameController.asocijacijeColor(13)}%"
+                                 disabled="#{GameController.getOpenFieldDisabled(7)}"/>
+                <p:commandButton value="#{GameController.getName(11)}" action="#{GameController.openField(11)}" 
+                                 update="asocijacije" style="width: 20%; margin-right: 2%; #{GameController.asocijacijeColor(14)}"
+                                 disabled="#{GameController.getOpenFieldDisabled(11)}"/>
+                <p:commandButton value="#{GameController.getName(15)}" action="#{GameController.openField(15)}" 
+                                 update="asocijacije" style="width: 20%; #{GameController.asocijacijeColor(15)}"
+                                 disabled="#{GameController.getOpenFieldDisabled(15)}"/>
+            </div>
+            <div style="margin-bottom: 2%">
+                <p:inputTextarea value="#{GameController.openedResults[0]}"  placeholder="#{GameController.getAsocijacijePlaceholders(0)}"
+                                 disabled="#{GameController.asocijacijeOpened[16]}" 
+                                 style="width: 19.1%; margin-right: 2%; #{GameController.asocijacijeColor(16)}"/>
+                <p:inputTextarea value="#{GameController.openedResults[1]}"  placeholder="#{GameController.getAsocijacijePlaceholders(1)}"
+                                 disabled="#{GameController.asocijacijeOpened[17]}" 
+                                 style="width: 19.1%; margin-right: 2%; #{GameController.asocijacijeColor(17)}"/>
+                <p:inputTextarea value="#{GameController.openedResults[2]}"  placeholder="#{GameController.getAsocijacijePlaceholders(2)}"
+                                 disabled="#{GameController.asocijacijeOpened[18]}" 
+                                 style="width: 19.1%; margin-right: 2%; #{GameController.asocijacijeColor(18)}"/>
+                <p:inputTextarea value="#{GameController.openedResults[3]}"  placeholder="#{GameController.getAsocijacijePlaceholders(3)}"
+                                 disabled="#{GameController.asocijacijeOpened[19]}" 
+                                 style="width: 19.1%; #{GameController.asocijacijeColor(19)}"/>
+            </div>
+            <p:inputTextarea value="#{GameController.openedResults[4]}" placeholder="#{GameController.getAsocijacijePlaceholders(4)}"
+                             disabled="#{GameController.asocijacijeOpened[20]}" 
+                             style="width: 86%; margin-bottom: 2%; #{GameController.asocijacijeColor(20)}"/>
+            <br/>
+            <p:commandButton value="Submit" action="#{GameController.submitAsocijacije()}" update="asocijacije timer"
+                             disabled="#{GameController.asocijacijeSubmitDisabled}"/>
+        </h:form>
+
+    </h:body>
+</html>
+

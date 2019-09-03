@@ -4,7 +4,7 @@ import entities.WordPairs;
 
 import static util.PreparationManager.createSpojniceWordAndPositionArrays;
 
-public class Spojnice {
+public class Spojnice implements SidePlayerGame {
     private int activeLeft = 0;
     private String gameName;
     private final String[][] words = new String[10][2];
@@ -64,16 +64,16 @@ public class Spojnice {
         return builder.toString();
     }
 
-    public boolean setHitByBlueAndReturnIfCompleted(String hitByBlueAsString) {
-        return setHitByArrayAndReturnIfCompleted(hitByBlueAsString, hitByBlue);
+    public void setHitByBlue(String hitByBlueAsString) {
+        setHitByArray(hitByBlueAsString, hitByBlue);
     }
 
-    public boolean setHitByRedAndReturnIfCompleted(String hitByRedAsString) {
-        return setHitByArrayAndReturnIfCompleted(hitByRedAsString, hitByRed);
+    public void setHitByRed(String hitByRedAsString) {
+        setHitByArray(hitByRedAsString, hitByRed);
     }
 
-    private boolean setHitByArrayAndReturnIfCompleted(String hitByAsString, boolean[] hitBy) {
-        boolean completed = true;
+    private void setHitByArray(String hitByAsString, boolean[] hitBy) {
+        completed = true;
         String[] temp = hitByAsString.split(" ");
         for (int i = 0; i < 10; i++)
             if ("1".equals(temp[i])) hitBy[i] = true;
@@ -81,12 +81,6 @@ public class Spojnice {
                 hitBy[i] = false;
                 completed = false;
             }
-        return completed;
-    }
-
-    public void updateActivePointer() {
-        activeLeft = 0;
-        while(hitByBlue[activeLeft] || hitByRed[activeLeft]) activeLeft++;
     }
 
     public String colorLeft(int i){
@@ -107,7 +101,8 @@ public class Spojnice {
                 || activeLeft>9;
     }
 
-    public Boolean getSidePlayer() {
+    @Override
+    public Boolean isSidePlayer() {
         return sidePlayer;
     }
 
@@ -147,8 +142,15 @@ public class Spojnice {
         return gameName;
     }
 
+    @Override
     public boolean isCompleted() {
         return completed;
+    }
+
+    @Override
+    public void getReadyForSidePlayer() {
+        activeLeft = 0;
+        while(hitByBlue[activeLeft] || hitByRed[activeLeft]) activeLeft++;
     }
 
     public int getPoints() {
