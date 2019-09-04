@@ -5,6 +5,9 @@
  */
 package entities;
 
+import games.SidePlayerGame;
+import games.Skocko;
+
 import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -95,6 +98,14 @@ public class SkockoVariables implements SidePlayerGameVariables, Serializable{
     }
 
     @Override
+    public void updateVariables(SidePlayerGame game, boolean forBlue) {
+        if(game instanceof Skocko){
+            setInputCombos(((Skocko) game).getInputAsString());
+            setOutputCombos(((Skocko) game).getFeedbackAsString());
+        }
+    }
+
+    @Override
     public void setBluePlaying(boolean bluePlaying) {
         this.bluePlaying = bluePlaying;
     }
@@ -103,7 +114,7 @@ public class SkockoVariables implements SidePlayerGameVariables, Serializable{
         return inputCombos;
     }
 
-    public void setInputCombos(String inputCombos) {
+    private void setInputCombos(String inputCombos) {
         this.inputCombos = inputCombos;
     }
 
@@ -111,7 +122,7 @@ public class SkockoVariables implements SidePlayerGameVariables, Serializable{
         return outputCombos;
     }
 
-    public void setOutputCombos(String outputCombos) {
+    private void setOutputCombos(String outputCombos) {
         this.outputCombos = outputCombos;
     }
 

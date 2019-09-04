@@ -38,7 +38,22 @@ public class MojBrojVariables implements GameVariables, Serializable {
     }
     
     public MojBrojVariables() {}
-    
+
+    @Override
+    public void fixPoints() {
+        if(pointsBlue == 10 && pointsRed== 10) {
+            if(differenceBlue > differenceRed) {
+                pointsBlue = 0;
+            }
+            else if(differenceBlue < differenceRed) {
+                pointsRed = 0;
+            }
+            else {
+                pointsBlue = pointsRed = 5;
+            }
+        }
+    }
+
     public String getRed() {
         return red;
     }

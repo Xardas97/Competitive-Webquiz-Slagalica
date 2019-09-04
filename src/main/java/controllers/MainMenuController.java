@@ -44,7 +44,7 @@ public class MainMenuController implements Serializable{
         CriteriaQuery<SingleplayerGame> criteria = builder.createQuery(SingleplayerGame.class);
         Root<SingleplayerGame> game = criteria.from(SingleplayerGame.class);
         criteria.select(game)
-                .where(builder.equal(game.get("username"),username))
+                .where(builder.equal(game.get("username"), username))
                 .where(builder.equal(game.get("gameDate"), currentDate));
         SingleplayerGame playedToday = session.createQuery(criteria).uniqueResult();
 

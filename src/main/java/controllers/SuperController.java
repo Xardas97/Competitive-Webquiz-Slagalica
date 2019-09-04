@@ -33,9 +33,10 @@ public class SuperController implements Serializable{
     
     private String text;
     private String[][] pairs = new String[10][2];
-
-    private String[][] columns = {{"A1", "B1", "C1", "D1"},{"A2", "B2", "C2", "D2"},{"A3", "B3", "C3", "D3"},{"A4", "B4", "C4", "D4"}};
-    private String[] result = {"A","B","C","D"};
+    private static final String[][] COLUMN_PLACEHOLDERS = {{"A1", "B1", "C1", "D1"},{"A2", "B2", "C2", "D2"},{"A3", "B3", "C3", "D3"},{"A4", "B4", "C4", "D4"}};
+    private static final String[] RESULT_PLACEHOLDERS = {"A","B","C","D"};
+    private String[][] columns = COLUMN_PLACEHOLDERS;
+    private String[] result = RESULT_PLACEHOLDERS;
     private String resultEnd = "Final";
     
     public void submitAsocijacije() {
@@ -45,11 +46,8 @@ public class SuperController implements Serializable{
         session.save(asocijacija);
         closeTransaction(session);
         
-        columns[0][0] = "A1"; columns[0][1] = "B1"; columns[0][2] = "C1"; columns[0][3] = "D1";
-        columns[1][0] = "A2"; columns[1][1] = "B2"; columns[1][2] = "C2"; columns[1][3] = "D2"; 
-        columns[2][0] = "A3"; columns[2][1] = "B3"; columns[2][2] = "C3"; columns[2][3] = "D3"; 
-        columns[3][0] = "A4"; columns[3][1] = "B4"; columns[3][2] = "C4"; columns[3][3] = "D4"; 
-        result[0] = "A"; result[1] = "B"; result[2] = "C"; result[3] = "D";
+        columns = COLUMN_PLACEHOLDERS;
+        result = RESULT_PLACEHOLDERS;
         resultEnd = "Final";
     }
     

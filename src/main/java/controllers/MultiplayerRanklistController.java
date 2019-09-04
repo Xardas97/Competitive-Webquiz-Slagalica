@@ -10,8 +10,7 @@ import classes.MultiplayerScores;
 import classes.MultiplayerScoresCounter;
 import entities.FinishedGame;
 import java.io.Serializable;
-import java.sql.Date;
-import java.util.Calendar;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,26 +45,19 @@ public class MultiplayerRanklistController implements Serializable{
     }
     
     private void initWeekly(){
-        int year = Calendar.getInstance().get(Calendar.YEAR);
-        int month = Calendar.getInstance().get(Calendar.MONTH);
-        int day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
-        Date currentDate = new Date(year-1900, month, day);
-        Date startDate = new Date(currentDate.getTime()-1000*60*60*24*6);
-        
+        LocalDate startDate = LocalDate.now().minusDays(7);
         usersWeekly = new LinkedList<>();
         initUsers(startDate, usersWeekly);
     }
     
     private void initMonthly(){
-        int year = Calendar.getInstance().get(Calendar.YEAR);
-        int month = Calendar.getInstance().get(Calendar.MONTH);
-        Date startDate = new Date(year-1900, month, 1);
+        LocalDate startDate = LocalDate.now().withDayOfMonth(1);
         
         usersMonthly = new LinkedList<>();
         initUsers(startDate, usersMonthly);
     }
 
-    private  void initUsers(Date startDate, List<MultiplayerScores> users){
+    private  void initUsers(LocalDate startDate, List<MultiplayerScores> users){
         List results = getGames(startDate);
         
         Map<String, MultiplayerScoresCounter> scoreCounters;
@@ -109,7 +101,7 @@ public class MultiplayerRanklistController implements Serializable{
         return scoreCounters;
     }
     
-    private List getGames(Date startDate){
+    private List getGames(LocalDate startDate){
         Session session = openTransaction();
         
         Query query = session.createQuery("FROM FinishedGame WHERE gameDate>=?");

@@ -27,13 +27,11 @@ public class SessionManager {
         }
     }
     
-    public static boolean setUser(User user) {
+    public static void setUser(User user) {
         HttpSession session = getSession();
         if (session != null) {
             session.setAttribute("user", user);
-            return true;
         }
-        return false;
     }
     
     public static String getPlayerSide() {
@@ -45,13 +43,11 @@ public class SessionManager {
         }
     }
     
-    public static boolean setPlayerSide(String playerSideString) {
+    public static void setPlayerSide(String playerSideString) {
         HttpSession session = getSession();
         if (session != null) {
             session.setAttribute("playerSide", playerSideString);
-            return true;
         }
-        return false;
     }
     
     public static String getGameMode() {
@@ -63,12 +59,10 @@ public class SessionManager {
         }
     }
     
-    public static boolean setGameMode(String gameModeString) {
+    public static void setGameMode(String gameModeString) {
         HttpSession session = getSession();
         if (session != null) {
             session.setAttribute("gameMode", gameModeString);
-            return true;
         }
-        return false;
     }
 }

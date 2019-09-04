@@ -36,7 +36,17 @@ public class SlagalicaVariables implements GameVariables, Serializable{
     }
     
     public SlagalicaVariables() {}
-    
+
+    @Override
+    public void fixPoints() {
+        if(pointsBlue > pointsRed){
+            pointsRed = 0;
+        }
+        else if(pointsRed > pointsBlue){
+            pointsBlue = 0;
+        }
+    }
+
     public String getRed() {
         return red;
     }
@@ -55,10 +65,6 @@ public class SlagalicaVariables implements GameVariables, Serializable{
 
     public String getLetters() {
         return letters;
-    }
-
-    public void setLetters(String letters) {
-        this.letters = letters;
     }
 
     public int getPointsBlue() {

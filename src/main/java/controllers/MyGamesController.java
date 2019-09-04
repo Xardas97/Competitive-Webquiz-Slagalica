@@ -5,6 +5,7 @@
  */
 package controllers;
 
+import static services.TransactionService.*;
 import entities.FinishedGame;
 import java.io.Serializable;
 import java.util.Date;
@@ -65,14 +66,12 @@ public class MyGamesController implements Serializable{
     @PostConstruct
     public void initGames(){
         String username = SessionManager.getUser().getUsername();
-        Session session = database.HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
+        Session session = openTransaction();
         
         Query query = session.createQuery("FROM FinishedGame WHERE blue=? OR red=?");
         List results = query.setParameter(0, username).setParameter(1, username).list();
         
-        session.getTransaction().commit();
-        session.close();
+        closeTransaction(session);
         
         myGames = new LinkedList<>();
         for(Object result: results)
@@ -80,32 +79,38 @@ public class MyGamesController implements Serializable{
                 FinishedGame game = (FinishedGame) result;
                 MyGameElement gameElement = new MyGameElement(); 
                 gameElement.date = game.getGameDate();
-                if(((FinishedGame) result).getBlue().equals(username)){
-                    //We are blue
-                    gameElement.side = "Blue";
-                    gameElement.opponent = ((FinishedGame) result).getRed();
-                    gameElement.myPoints = game.getPointsBlue();
-                    gameElement.opponentPoints = game.getPointsRed();
-                    switch(game.getGameResult()){
-                        case 1: gameElement.result = "Victory"; break; 
-                        case -1: gameElement.result = "Defeat"; break;
-                        default: gameElement.result = "Draw";
-                    }
+                if(game.getBlue().equals(username)) {
+                    initGameElementAsBlue(game, gameElement);
                 }
                 else{
-                    //We are red
-                    gameElement.side = "Red";
-                    gameElement.opponent = ((FinishedGame) result).getBlue();
-                    gameElement.myPoints = game.getPointsRed();
-                    gameElement.opponentPoints = game.getPointsBlue();
-                    switch(game.getGameResult()){
-                        case 1: gameElement.result = "Defeat"; break;
-                        case -1: gameElement.result = "Victory"; break;
-                        default: gameElement.result = "Draw";
-                    }
+                    initGameElementAsRed(game, gameElement);
                 }
                 myGames.add(gameElement);
             }
+    }
+
+    private void initGameElementAsRed(FinishedGame game, MyGameElement gameElement) {
+        gameElement.side = "Red";
+        gameElement.opponent = game.getBlue();
+        gameElement.myPoints = game.getPointsRed();
+        gameElement.opponentPoints = game.getPointsBlue();
+        switch(game.getGameResult()){
+            case 1: gameElement.result = "Defeat"; break;
+            case -1: gameElement.result = "Victory"; break;
+            default: gameElement.result = "Draw";
+        }
+    }
+
+    private void initGameElementAsBlue(FinishedGame game, MyGameElement gameElement) {
+        gameElement.side = "Blue";
+        gameElement.opponent = game.getRed();
+        gameElement.myPoints = game.getPointsBlue();
+        gameElement.opponentPoints = game.getPointsRed();
+        switch(game.getGameResult()){
+            case 1: gameElement.result = "Victory"; break;
+            case -1: gameElement.result = "Defeat"; break;
+            default: gameElement.result = "Draw";
+        }
     }
 
     public List<MyGameElement> getMyGames() {

@@ -1,5 +1,8 @@
 package games;
 
+import entities.SidePlayerGameVariables;
+import entities.SkockoVariables;
+
 public class Skocko implements SidePlayerGame{
     private static final String[] SYMBOLS = {"Pik", "Tref", "Herc", "Karo", "Zvezda", "Skocko"};
     private final String[] secretCombo;
@@ -8,6 +11,7 @@ public class Skocko implements SidePlayerGame{
     private int currentRow;
     private int currentSymbol;
     private int points = 0;
+    private Boolean sidePlayer = null;
     private boolean completed;
 
     public Skocko(String secretCombo) {
@@ -67,7 +71,7 @@ public class Skocko implements SidePlayerGame{
         for(int i=0; i<4; i++) input[currentRow][i] = "x";
     }
 
-    public void setInputAndFeedback(String inputString, String feedbackString) {
+    private void setInputAndFeedback(String inputString, String feedbackString) {
         String[] temp = inputString.split("-");
         for (int i = 0; i < 7; i++) {
             input[i] = temp[i].split(" ");
@@ -149,13 +153,14 @@ public class Skocko implements SidePlayerGame{
         return SYMBOLS;
     }
 
-    public int getCurrentRow() {
-        return currentRow;
+    @Override
+    public Boolean isSidePlayer() {
+        return sidePlayer;
     }
 
     @Override
-    public Boolean isSidePlayer() {
-        return currentRow == 6;
+    public void setSidePlayer(Boolean sidePlayer) {
+        this.sidePlayer = sidePlayer;
     }
 
     public int getPoints() {
@@ -168,7 +173,20 @@ public class Skocko implements SidePlayerGame{
     }
 
     @Override
+    public boolean playerFinished() {
+        return currentRow > 5;
+    }
+
+    @Override
     public void getReadyForSidePlayer() {
         currentRow = 6;
+    }
+
+    @Override
+    public void updateVariables(SidePlayerGameVariables variables, boolean forBlue) {
+        if(variables instanceof SkockoVariables){
+            SkockoVariables skockoVars = (SkockoVariables) variables;
+            setInputAndFeedback(skockoVars.getInputCombos(), (skockoVars.getOutputCombos()));
+        }
     }
 }

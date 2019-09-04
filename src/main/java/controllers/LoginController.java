@@ -6,6 +6,8 @@
 package controllers;
 
 import static services.TransactionService.*;
+
+import exceptions.UploadFailedException;
 import util.PasswordManager;
 import entities.RegistrationRequest;
 import entities.User.Gender;
@@ -39,6 +41,7 @@ import util.SessionManager;
 @SessionScoped
 @Named(value="LoginController")
 public class LoginController implements Serializable {
+    private static final String IMAGE_FOLDER = "C:\\Users\\Marko\\Desktop\\userImages\\";
     private short firstPageTab = 0; //0-login, 1-register, 2-change pass
     private final String redirect = "?faces-redirect=true";
     
@@ -62,54 +65,28 @@ public class LoginController implements Serializable {
 
         if(session.get(User.class, username)!=null || session.get(RegistrationRequest.class, username)!=null) {
             errorMessage = "Username already exists";
-            session.getTransaction().commit();
-            session.close();
+            closeTransaction(session);
             return;
         }
-        
+
         String extension = FilenameUtils.getExtension(uploadedFile.getFileName());
         if(extension!=null) {
-            if(!("jpg".equals(extension.toLowerCase()) || "png".equals(extension.toLowerCase()))){
-                errorMessage = "Just 'jpg' and 'png' images are supported"; 
-                return;
-            }
-            try{
-                InputStream input = uploadedFile.getInputstream();
-                BufferedImage img = ImageIO.read(input);
-                if(img.getHeight()>300 || img.getWidth()>300){
-                    errorMessage = "Wrong image size, max: 300x300px, yours: " + img.getHeight() + "x" + img.getWidth() + "px"; 
-                    return;
-                }
-                Path filePath = Paths.get("C:\\Users\\Marko\\Desktop\\userImages\\"+username+"."+extension);
-                Files.createFile(filePath);
-                ImageIO.write(img, extension, new File(filePath.toString()));
-                
-            } catch (IOException ex) {
-                Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE, null, ex);
-                errorMessage = "Image upload failed"; 
+            try {
+                saveImage(extension);
+            } catch (UploadFailedException e) {
+                closeTransaction(session);
                 return;
             }
         }
-        
-        RegistrationRequest request = new RegistrationRequest();
-        request.setFirstName(firstName);
-        request.setLastName(lastName);
-        request.setEmail(email);
-        request.setProfession(profession);
-        request.setUsername(username);
-        request.setPassword(PasswordManager.createPasswordDigest(password));
-        request.setGender(gender);
-        request.setBirthday(birthday);
-        if(extension!=null) request.setHasImage(true);
 
-        session.save(request);
+        session.save(createRegistrationRequest(extension));
         
         closeTransaction(session);
         
         errorMessage = "";
         firstPageTab = 0;
     }
-    
+
     public void changePassword(){
         if(!password.equals(confirmPassword)){ errorMessage = "Passwords don't match"; return; }
         
@@ -119,8 +96,8 @@ public class LoginController implements Serializable {
         if(user!=null){
             if(PasswordManager.checkPassword(oldPassword, user.getPassword())){
                 //username and password accurate, we can change his password
-                user.setPassword(PasswordManager.createPasswordDigest(password));
                 //User is still connected to the database, we don't need to manually update it
+                user.setPassword(PasswordManager.createPasswordDigest(password));
                 
                 errorMessage = "";
                 firstPageTab = 0;
@@ -187,6 +164,43 @@ public class LoginController implements Serializable {
         SessionManager.getSession().invalidate();
         errorMessage = "";
         return "index"+redirect;
+    }
+
+    private void saveImage(String extension) throws UploadFailedException {
+        if(!("jpg".equals(extension.toLowerCase()) || "png".equals(extension.toLowerCase()))){
+            errorMessage = "Just 'jpg' and 'png' images are supported";
+            throw new UploadFailedException();
+        }
+        try{
+            InputStream input = uploadedFile.getInputstream();
+            BufferedImage img = ImageIO.read(input);
+            if(img.getHeight()>300 || img.getWidth()>300){
+                errorMessage = "Wrong image size, max: 300x300px, yours: " + img.getHeight() + "x" + img.getWidth() + "px";
+                throw new UploadFailedException();
+            }
+            Path filePath = Paths.get(IMAGE_FOLDER + username+"."+extension);
+            Files.createFile(filePath);
+            ImageIO.write(img, extension, new File(filePath.toString()));
+
+        } catch (IOException ex) {
+            Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE, null, ex);
+            errorMessage = "Image upload failed";
+            throw new UploadFailedException();
+        }
+    }
+
+    private RegistrationRequest createRegistrationRequest(String extension) {
+        RegistrationRequest request = new RegistrationRequest();
+        request.setFirstName(firstName);
+        request.setLastName(lastName);
+        request.setEmail(email);
+        request.setProfession(profession);
+        request.setUsername(username);
+        request.setPassword(PasswordManager.createPasswordDigest(password));
+        request.setGender(gender);
+        request.setBirthday(birthday);
+        if(extension!=null) request.setHasImage(true);
+        return request;
     }
 
     public Gender[] getGenderStates(){

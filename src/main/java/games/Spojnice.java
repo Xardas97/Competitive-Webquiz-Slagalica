@@ -1,5 +1,7 @@
 package games;
 
+import entities.SidePlayerGameVariables;
+import entities.SpojniceVariables;
 import entities.WordPairs;
 
 import static util.PreparationManager.createSpojniceWordAndPositionArrays;
@@ -64,14 +66,6 @@ public class Spojnice implements SidePlayerGame {
         return builder.toString();
     }
 
-    public void setHitByBlue(String hitByBlueAsString) {
-        setHitByArray(hitByBlueAsString, hitByBlue);
-    }
-
-    public void setHitByRed(String hitByRedAsString) {
-        setHitByArray(hitByRedAsString, hitByRed);
-    }
-
     private void setHitByArray(String hitByAsString, boolean[] hitBy) {
         completed = true;
         String[] temp = hitByAsString.split(" ");
@@ -106,6 +100,7 @@ public class Spojnice implements SidePlayerGame {
         return sidePlayer;
     }
 
+    @Override
     public void setSidePlayer(Boolean sidePlayer) {
         this.sidePlayer = sidePlayer;
     }
@@ -130,14 +125,6 @@ public class Spojnice implements SidePlayerGame {
         return pairPosition;
     }
 
-    public int getActiveLeft() {
-        return activeLeft;
-    }
-
-    public void setActiveLeft(int activeLeft) {
-        this.activeLeft = activeLeft;
-    }
-
     public String getGameName() {
         return gameName;
     }
@@ -148,9 +135,27 @@ public class Spojnice implements SidePlayerGame {
     }
 
     @Override
+    public boolean playerFinished() {
+        return activeLeft > 9;
+    }
+
+    @Override
     public void getReadyForSidePlayer() {
         activeLeft = 0;
         while(hitByBlue[activeLeft] || hitByRed[activeLeft]) activeLeft++;
+    }
+
+    @Override
+    public void updateVariables(SidePlayerGameVariables variables, boolean forBlue) {
+        if(variables instanceof SpojniceVariables) {
+            activeLeft = 10;
+            if(forBlue){
+                setHitByArray(((SpojniceVariables) variables).getHitByBlue(), hitByBlue);
+            }
+            else{
+                setHitByArray(((SpojniceVariables) variables).getHitByRed(), hitByRed);
+            }
+        }
     }
 
     public int getPoints() {

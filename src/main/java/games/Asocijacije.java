@@ -1,17 +1,14 @@
 package games;
 
 import entities.Asocijacija;
+import entities.AsocijacijeVariables;
 
 public class Asocijacije {
     private static final String[] PLACEHOLDERS = {"A", "B", "C", "D", "? ? ?"};
     private final String[] columns;
-    private final String[] resultA;
-    private final String[] resultB;
-    private final String[] resultC;
-    private final String[] resultD;
-    private final String[] resultEnd;
+    private final String[][] results;
     private String[] openedResults = {"", "", "", "", ""};
-    private boolean[] opened;
+    private final boolean[] opened;
     private final boolean[] blueRevealed = {false, false, false, false, false};
     private final boolean[] redRevealed = {false, false, false, false, false};
     private int points = 0;
@@ -23,25 +20,27 @@ public class Asocijacije {
         for(int i=0; i<21; i++) opened[i] = false;
 
         columns = asocijacija.getColumns().split("-");
-        resultA = asocijacija.getResultA().split("\n");
-        resultB = asocijacija.getResultB().split("\n");
-        resultC = asocijacija.getResultC().split("\n");
-        resultD = asocijacija.getResultD().split("\n");
-        resultEnd = asocijacija.getResultEnd().split("-");
-        fixResultString(resultA);
-        fixResultString(resultB);
-        fixResultString(resultC);
-        fixResultString(resultD);
+
+        results = new String[5][];
+        results[0] = asocijacija.getResultA().split("\n");
+        results[1] = asocijacija.getResultB().split("\n");
+        results[2] = asocijacija.getResultC().split("\n");
+        results[3] = asocijacija.getResultD().split("\n");
+        results[4] = asocijacija.getResultEnd().split("-");
+        fixResultStrings(results);
     }
 
-    private void fixResultString(String[] result){
-        for (int i = 0; i < result.length - 1; i++) {
-            result[i] = result[i].substring(0, result[i].length() - 1);
+    private void fixResultStrings(String[][] results ){
+        for(int i = 0; i < 4; i++){
+            for (int j = 0; j < results[i].length - 1; j++) {
+                results[i][j] = results[i][j].substring(0, results[i][j].length() - 1);
+            }
         }
     }
 
     public void submit(boolean playerBlue) {
         fieldWasOpened = false;
+
         boolean[] myRevealArray;
         if (playerBlue) myRevealArray = blueRevealed;
         else myRevealArray = redRevealed;
@@ -54,44 +53,28 @@ public class Asocijacije {
 
         wasHit = false;
 
-        String[] result = null;
-        switch(submitted){
-            case 0: result = resultA; break;
-            case 1: result = resultB; break;
-            case 2: result = resultC; break;
-            case 3: result = resultD; break;
-            case 4: result = resultEnd; break;
-            default: break;
+        if(submitted == 4) {
+            if (isCorrect(openedResults[4], results[4])) {
+                points += 10;
+                myRevealArray[4] = true;
+                for (int i = 0; i < 4; i++)
+                    if (!opened[16 + i]) {
+                        myRevealArray[i] = true;
+                        points += 5;
+                    }
+                for (int i = 0; i < 21; i++) opened[i] = true;
+            }
+        }
+        else {
+            if(submitted < 4 && isCorrect(openedResults[submitted], results[submitted])) {
+                points += 5;
+                for(int i=submitted*4; i < (submitted + 1)*4; i++) opened[i] = true;
+                opened[16 + submitted] = true;
+                myRevealArray[submitted] = true;
+                wasHit = true;
+            }
         }
 
-        switch (submitted) {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-                if( isCorrect(openedResults[submitted], result)) {
-                    points += 5;
-                    for(int i=submitted*4; i < (submitted + 1)*4; i++) opened[i] = true;
-                    opened[16 + submitted] = true;
-                    myRevealArray[submitted] = true;
-                    wasHit = true;
-                }
-                break;
-            case 4:
-                if (isCorrect(openedResults[4], resultEnd)) {
-                    points += 10;
-                    myRevealArray[4] = true;
-                    for (int i = 0; i < 4; i++)
-                        if (!opened[16 + i]) {
-                            myRevealArray[i] = true;
-                            points += 5;
-                        }
-                    for (int i = 0; i < 21; i++) opened[i] = true;
-                }
-                break;
-            default:
-                break;
-        }
         for (int i = 0; i < 5; i++) openedResults[i] = "";
 
         if (wasHit) fieldWasOpened = true;
@@ -107,33 +90,17 @@ public class Asocijacije {
     }
 
     public String getFieldName(int i){
+        if(i<0 || i>15) return "error";
         if(opened[i]) return columns[i];
-        else {
-            String columnName = "";
-            switch(i/4){
-                case 0: columnName = "A"; break;
-                case 1: columnName = "B"; break;
-                case 2: columnName = "C"; break;
-                case 3: columnName = "D"; break;
-            }
-            columnName += Integer.toString(i%4+1);
-            return columnName;
-        }
+        return PLACEHOLDERS[i/4] + (i % 4 + 1);
     }
 
     public String getColumnResultName(int i) {
         if(i<0 || i>5) return "error";
         if(opened[16+i]) {
-            switch(i){
-                case 0: return resultA[0];
-                case 1: return resultB[0];
-                case 2: return resultC[0];
-                case 3: return resultD[0];
-                case 4: return resultEnd[0];
-                default: return "error";
-            }
+            return results[i][0];
         }
-        else return PLACEHOLDERS[i];
+        return PLACEHOLDERS[i];
     }
 
     public String getFieldColor(int i){
@@ -153,12 +120,13 @@ public class Asocijacije {
             if ("1".equals(temp[i])) opened[i] = true;
     }
 
-    public void setRevealedByBlue(String blueRevealedAsString) {
-        setRevealedByArray(blueRevealedAsString, blueRevealed);
-    }
-
-    public void setRevealedByRed(String redRevealedString) {
-        setRevealedByArray(redRevealedString, redRevealed);
+    public void setRevealedByArray(AsocijacijeVariables variables, boolean forBlue){
+        if(forBlue){
+            setRevealedByArray(variables.getRevealedByBlue(), blueRevealed);
+        }
+        else{
+            setRevealedByArray(variables.getRevealedByRed(), redRevealed);
+        }
     }
 
     private void setRevealedByArray(String revealedAsString, boolean[] revealed) {
@@ -169,6 +137,7 @@ public class Asocijacije {
 
 
     private boolean isCorrect(String submitted, String[] acceptables){
+        if(acceptables == null) return false;
         for(String acceptable: acceptables)
             if(acceptable.toLowerCase().equals(submitted.toLowerCase())) return true;
 

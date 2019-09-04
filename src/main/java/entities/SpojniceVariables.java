@@ -5,6 +5,9 @@
  */
 package entities;
 
+import games.SidePlayerGame;
+import games.Spojnice;
+
 import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -95,6 +98,18 @@ public class SpojniceVariables implements SidePlayerGameVariables, Serializable{
     }
 
     @Override
+    public void updateVariables(SidePlayerGame game, boolean forBlue) {
+        if(game instanceof Spojnice){
+            if(forBlue) {
+                setHitByBlue(((Spojnice) game).hitByMeAsString(true));
+            }
+            else {
+                setHitByRed(((Spojnice) game).hitByMeAsString(false));
+            }
+        }
+    }
+
+    @Override
     public void setBluePlaying(boolean bluePlaying) {
         this.bluePlaying = bluePlaying;
     }
@@ -103,7 +118,7 @@ public class SpojniceVariables implements SidePlayerGameVariables, Serializable{
         return hitByBlue;
     }
 
-    public void setHitByBlue(String hitByBlue) {
+    private void setHitByBlue(String hitByBlue) {
         this.hitByBlue = hitByBlue;
     }
 
@@ -111,7 +126,7 @@ public class SpojniceVariables implements SidePlayerGameVariables, Serializable{
         return hitByRed;
     }
 
-    public void setHitByRed(String hitByRed) {
+    private void setHitByRed(String hitByRed) {
         this.hitByRed = hitByRed;
     }
 
