@@ -5,7 +5,6 @@
  */
 package controllers;
 
-import static services.TransactionService.*;
 import static services.GameQueueService.*;
 import entities.ActiveGame;
 import java.io.Serializable;
@@ -14,9 +13,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
-import org.hibernate.Session;
 import services.ActiveGameService;
 import util.SessionManager;
+import util.Transaction;
 
 /**
  *
@@ -34,17 +33,16 @@ public class HostingController implements Serializable{
     public String checkIfAccepted(){
         if(!hosting) return null;
         String returnString = null;
-        Session session = openTransaction();
 
-        ActiveGame game = ActiveGameService.myActiveGame(session, username);
-        if(game!=null) { 
-            returnString="game?faces-redirect=true"; 
-            message=""; 
-            SessionManager.setGameMode("multiplayer");
-            SessionManager.setPlayerSide("blue");
+        try(Transaction transaction = new Transaction()){
+            ActiveGame game = ActiveGameService.myActiveGame(transaction, username);
+            if(game!=null) {
+                returnString="game?faces-redirect=true";
+                message="";
+                SessionManager.setGameMode("multiplayer");
+                SessionManager.setPlayerSide("blue");
+            }
         }
-        
-        closeTransaction(session);
         return returnString;
     }
     

@@ -14,11 +14,9 @@ import entities.SpojniceVariables;
 import entities.WordPairs;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
-
 import games.Skocko;
 import games.Spojnice;
 import org.hibernate.query.Query;
-import org.hibernate.Session;
 
 /**
  *
@@ -30,7 +28,7 @@ public class PreparationManager {
     private static final String[] SECOND_NUMBER_POOL = {"25", "50", "75", "100"};
     private static final String[] SKOCKO_SYMBOLS = Skocko.getSymbols();
     
-    public static String generateSlagalica(Session session, String blue, String red, boolean multiplayer){
+    public static String generateSlagalica(Transaction transaction, String blue, String red, boolean multiplayer){
         Random rnd = ThreadLocalRandom.current();
         StringBuilder builder = new StringBuilder();
         builder.append(LETTERS[rnd.nextInt(30)]);
@@ -39,11 +37,11 @@ public class PreparationManager {
         }
         
         String generatedLetters = builder.toString();
-        if(multiplayer)  session.save(new SlagalicaVariables(blue, red, generatedLetters));
+        if(multiplayer)  transaction.save(new SlagalicaVariables(blue, red, generatedLetters));
         return generatedLetters;
     }
     
-    public static String generateMojBroj(Session session, String blue, String red, boolean multiplayer){
+    public static String generateMojBroj(Transaction transaction, String blue, String red, boolean multiplayer){
         Random rnd = ThreadLocalRandom.current();
         StringBuilder builder = new StringBuilder();
         builder.append(rnd.nextInt(999)+1);
@@ -54,11 +52,11 @@ public class PreparationManager {
         builder.append(' ').append(SECOND_NUMBER_POOL[rnd.nextInt(4)]);
         
         String generatedNumbers = builder.toString();
-        if(multiplayer) session.save(new MojBrojVariables(blue, red, generatedNumbers));
+        if(multiplayer) transaction.save(new MojBrojVariables(blue, red, generatedNumbers));
         return generatedNumbers;
     }
     
-    public static String generateSkocko(Session session, String blue, String red, boolean multiplayer, boolean newEntry){
+    public static String generateSkocko(Transaction transaction, String blue, String red, boolean multiplayer, boolean newEntry){
         Random rnd = ThreadLocalRandom.current();
         StringBuilder builder = new StringBuilder();
         builder.append(SKOCKO_SYMBOLS[rnd.nextInt(6)]);
@@ -68,9 +66,9 @@ public class PreparationManager {
         
         String generatedCombo = builder.toString();
         if(multiplayer) 
-            if(newEntry) session.save(new SkockoVariables(blue, red, generatedCombo));
+            if(newEntry) transaction.save(new SkockoVariables(blue, red, generatedCombo));
             else{
-                Query query = session.createQuery("FROM SkockoVariables WHERE blue=?");
+                Query query = transaction.createQuery("FROM SkockoVariables WHERE blue=?");
                 SkockoVariables skockoVars = (SkockoVariables) query
                         .setParameter(0, blue)
                         .uniqueResult();
@@ -79,17 +77,17 @@ public class PreparationManager {
         return generatedCombo;
     }
     
-    public static void generateSpojnice(Session session, String blue, String red, Spojnice spojnice, boolean newEntry){
-        WordPairs wordPairs = (WordPairs) session
+    public static void generateSpojnice(Transaction transaction, String blue, String red, Spojnice spojnice, boolean newEntry){
+        WordPairs wordPairs = (WordPairs) transaction
                 .createQuery("FROM WordPairs ORDER BY rand(5)")
                 .setMaxResults(1).uniqueResult();
         
         String gameText = wordPairs.getText();
         createSpojniceWordAndPositionArrays(wordPairs.getPairs().split("-"), spojnice);
         
-        if (newEntry) session.save(new SpojniceVariables(blue, red, spojnice.getPairPosition(), wordPairs));
+        if (newEntry) transaction.save(new SpojniceVariables(blue, red, spojnice.getPairPosition(), wordPairs));
         else {
-            Query query = session.createQuery("FROM SpojniceVariables WHERE blue=?");
+            Query query = transaction.createQuery("FROM SpojniceVariables WHERE blue=?");
             SpojniceVariables spojniceVars = (SpojniceVariables) query.setParameter(0, blue).uniqueResult();
             spojniceVars.prepareNewGame(spojnice.getPairPosition(), wordPairs, false);
         }
@@ -97,33 +95,33 @@ public class PreparationManager {
         spojnice.setGameName(gameText);
     }
     
-    public static Asocijacija generateAsocijacije(Session session, String blue, String red){
-        Asocijacija asocijacija = (Asocijacija) session
+    public static Asocijacija generateAsocijacije(Transaction transaction, String blue, String red){
+        Asocijacija asocijacija = (Asocijacija) transaction
                 .createQuery("FROM Asocijacija ORDER BY rand(5)")
                 .setMaxResults(1).uniqueResult();
         
-        session.save(new AsocijacijeVariables(blue, red, asocijacija));
+        transaction.save(new AsocijacijeVariables(blue, red, asocijacija));
         
         return asocijacija;
     }
     
-    public static String[] loadSlagalica(Session session, String red) {
-        return ((SlagalicaVariables) session.createQuery("FROM SlagalicaVariables WHERE red=?").
+    public static String[] loadSlagalica(Transaction transaction, String red) {
+        return ((SlagalicaVariables) transaction.createQuery("FROM SlagalicaVariables WHERE red=?").
                 setParameter(0, red).uniqueResult()).getLetters().split(" ");
     }
     
-    public static String[] loadMojBroj(Session session, String red){
-        return ((MojBrojVariables) session.createQuery("FROM MojBrojVariables WHERE red=?").
+    public static String[] loadMojBroj(Transaction transaction, String red){
+        return ((MojBrojVariables) transaction.createQuery("FROM MojBrojVariables WHERE red=?").
                 setParameter(0, red).uniqueResult()).getNumbers().split(" ");
     }
     
-    public static String[] loadSkocko(Session session, String red){
-        return ((SkockoVariables) session.createQuery("FROM SkockoVariables WHERE red=?").
+    public static String[] loadSkocko(Transaction transaction, String red){
+        return ((SkockoVariables) transaction.createQuery("FROM SkockoVariables WHERE red=?").
                 setParameter(0, red).uniqueResult()).getSecretCombo().split(" ");
     }
     
-    public static void loadSpojnice(Session session, String red, Spojnice spojnice){
-        SpojniceVariables spojniceVars = (SpojniceVariables) session.createQuery("FROM SpojniceVariables WHERE red=?").
+    public static void loadSpojnice(Transaction transaction, String red, Spojnice spojnice){
+        SpojniceVariables spojniceVars = (SpojniceVariables) transaction.createQuery("FROM SpojniceVariables WHERE red=?").
                 setParameter(0, red).uniqueResult();
         
         String[] pairPositionStrings = spojniceVars.getPairPosition().split(" ");
@@ -140,8 +138,8 @@ public class PreparationManager {
         spojnice.setGameName(spojniceVars.getPairs().getText());
     }
     
-    public static Asocijacija loadAsocijacije(Session session, String red){
-        return ((AsocijacijeVariables) session.
+    public static Asocijacija loadAsocijacije(Transaction transaction, String red){
+        return ((AsocijacijeVariables) transaction.
                 createQuery("FROM AsocijacijeVariables WHERE red=?").
                 setParameter(0, red).uniqueResult()).getAsocijacija();
     }

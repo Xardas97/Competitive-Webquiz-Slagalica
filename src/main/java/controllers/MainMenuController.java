@@ -5,7 +5,6 @@
  */
 package controllers;
 
-import static services.TransactionService.*;
 import entities.GameOfTheDay;
 import entities.SingleplayerGame;
 import java.io.Serializable;
@@ -17,8 +16,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
-import org.hibernate.Session;
 import util.SessionManager;
+import util.Transaction;
 
 /**
  *
@@ -35,20 +34,21 @@ public class MainMenuController implements Serializable{
     public String startGameOfTheDay(){
         String username = SessionManager.getUser().getUsername();
         Date currentDate = new Date();
-        
-        Session session = openTransaction();
-        
-        GameOfTheDay gameOfTheDay = session.get(GameOfTheDay.class, currentDate);
 
-        CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaQuery<SingleplayerGame> criteria = builder.createQuery(SingleplayerGame.class);
-        Root<SingleplayerGame> game = criteria.from(SingleplayerGame.class);
-        criteria.select(game)
-                .where(builder.equal(game.get("username"), username))
-                .where(builder.equal(game.get("gameDate"), currentDate));
-        SingleplayerGame playedToday = session.createQuery(criteria).uniqueResult();
+        GameOfTheDay gameOfTheDay;
+        SingleplayerGame playedToday;
+        try(Transaction transaction = new Transaction()) {
 
-        closeTransaction(session);
+            gameOfTheDay = transaction.get(GameOfTheDay.class, currentDate);
+
+            CriteriaBuilder builder = transaction.getCriteriaBuilder();
+            CriteriaQuery<SingleplayerGame> criteria = builder.createQuery(SingleplayerGame.class);
+            Root<SingleplayerGame> game = criteria.from(SingleplayerGame.class);
+            criteria.select(game)
+                    .where(builder.equal(game.get("username"), username))
+                    .where(builder.equal(game.get("gameDate"), currentDate));
+            playedToday = transaction.createQuery(criteria).uniqueResult();
+        }
         
         //if admin hasn't set up the game for today
         if(gameOfTheDay==null) {

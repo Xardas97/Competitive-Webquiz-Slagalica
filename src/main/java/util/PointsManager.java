@@ -5,14 +5,12 @@
  */
 package util;
 
-import database.HibernateUtil;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import games.MojBroj;
 import games.Slagalica;
-import org.hibernate.Session;
 
 /**
  *
@@ -23,15 +21,12 @@ public class PointsManager {
         int points = 0;
         
         boolean wordAcceptable = true;
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        
-        if(session.createQuery("FROM AcceptableWord WHERE word=?")
+
+        try(Transaction transaction = new Transaction()) {
+            if (transaction.createQuery("FROM AcceptableWord WHERE word=?")
                     .setParameter(0, slagalica.getWord())
-                    .uniqueResult()==null) wordAcceptable=false;
-        
-        session.getTransaction().commit();
-        session.close();
+                    .uniqueResult() == null) wordAcceptable = false;
+        }
         
         if(wordAcceptable) for(boolean button: slagalica.getButtons()) if(!button) points+=2;
         return points;

@@ -15,8 +15,8 @@ import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
 import org.hibernate.query.Query;
-import org.hibernate.Session;
 import util.SessionManager;
+import util.Transaction;
 
 /**
  *
@@ -35,18 +35,17 @@ public class SingleplayerRanklistController implements Serializable{
     public void initGames(){
         String username = SessionManager.getUser().getUsername();
         Date today = new Date();
-        
-        Session session = database.HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        
-        Query query = session.createQuery("FROM SingleplayerGame WHERE gameDate=? ORDER BY points DESC");
-        List results = query.setParameter(0, today).list();
-        
-        query = session.createQuery("FROM SingleplayerGame WHERE gameDate=? AND username=?");
-        Object myGameObject = query.setParameter(0, today).setParameter(1, username).uniqueResult();
-        
-        session.getTransaction().commit();
-        session.close();
+
+        Object myGameObject;
+        List results;
+        try(Transaction transaction = new Transaction()) {
+
+            Query query = transaction.createQuery("FROM SingleplayerGame WHERE gameDate=? ORDER BY points DESC");
+            results = query.setParameter(0, today).list();
+
+            query = transaction.createQuery("FROM SingleplayerGame WHERE gameDate=? AND username=?");
+            myGameObject = query.setParameter(0, today).setParameter(1, username).uniqueResult();
+        }
         
         
         boolean iPlayed = false; //if the user has played today

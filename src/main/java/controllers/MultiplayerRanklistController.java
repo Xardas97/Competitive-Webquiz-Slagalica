@@ -5,7 +5,6 @@
  */
 package controllers;
 
-import static services.TransactionService.*;
 import classes.MultiplayerScores;
 import classes.MultiplayerScoresCounter;
 import entities.FinishedGame;
@@ -20,7 +19,7 @@ import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
 import org.hibernate.query.Query;
-import org.hibernate.Session;
+import util.Transaction;
 
 /**
  *
@@ -102,12 +101,11 @@ public class MultiplayerRanklistController implements Serializable{
     }
     
     private List getGames(LocalDate startDate){
-        Session session = openTransaction();
-        
-        Query query = session.createQuery("FROM FinishedGame WHERE gameDate>=?");
-        List results = query.setParameter(0, startDate).list();
-
-        closeTransaction(session);
+        List results;
+        try(Transaction transaction = new Transaction()) {
+            Query query = transaction.createQuery("FROM FinishedGame WHERE gameDate>=?");
+            results = query.setParameter(0, startDate).list();
+        }
         
         return results;
     }

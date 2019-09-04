@@ -5,7 +5,6 @@
  */
 package controllers;
 
-import static services.TransactionService.*;
 import static services.AdminService.*;
 import entities.Asocijacija;
 import entities.GameOfTheDay;
@@ -24,7 +23,8 @@ import javax.annotation.ManagedBean;
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
-import org.hibernate.Session;
+import services.AdminService;
+import util.Transaction;
 
 /**
  *
@@ -59,20 +59,18 @@ public class AdminController implements Serializable{
     }
     
     public void submit() {
-        Session session = openTransaction();
-        
-        if(gameOnChosenDay !=null){
-            gameOnChosenDay = session.get(GameOfTheDay.class, chosenDate);
-            gameOnChosenDay.setPairs(spojniceMap.get(chosenPair));
-            gameOnChosenDay.setAsocijacija(asocijacijeMap.get(chosenAsocijacija));
+        try(Transaction transaction = new Transaction()) {
+            if(gameOnChosenDay !=null){
+                gameOnChosenDay = transaction.get(GameOfTheDay.class, chosenDate);
+                gameOnChosenDay.setPairs(spojniceMap.get(chosenPair));
+                gameOnChosenDay.setAsocijacija(asocijacijeMap.get(chosenAsocijacija));
+            }
+            else{
+                GameOfTheDay game = new GameOfTheDay(chosenDate, spojniceMap.get(chosenPair), asocijacijeMap.get(chosenAsocijacija));
+                transaction.save(game);
+                outputMessage = "This game can still be changed";
+            }
         }
-        else{
-            GameOfTheDay game = new GameOfTheDay(chosenDate, spojniceMap.get(chosenPair), asocijacijeMap.get(chosenAsocijacija));
-            session.save(game);
-            outputMessage = "This game can still be changed";
-        }
-
-        closeTransaction(session);
     }
     
     public boolean getSubmitDisabled(){
@@ -80,9 +78,7 @@ public class AdminController implements Serializable{
     }
 
     private void initAsocijacije(){
-        Session session = openTransaction();
-        List asocijacijeResult = getAsocijacije();
-        closeTransaction(session);
+        List asocijacijeResult = AdminService.getAsocijacije();
 
         asocijacijeMap = new HashMap<>();
         asocijacije = new LinkedList<>();
@@ -95,9 +91,7 @@ public class AdminController implements Serializable{
     }
 
     private void initSpojnice(){
-        Session session = openTransaction();
-        List spojniceResult = getWordPairs(session);
-        closeTransaction(session);
+        List spojniceResult = getWordPairs();
         
         spojniceMap = new HashMap<>();
         spojnice = new LinkedList<>();
@@ -109,9 +103,7 @@ public class AdminController implements Serializable{
     }
     
     private void initRequests(){
-        Session session = openTransaction();
-        List requestsResult = getRegRequests(session);
-        closeTransaction(session);
+        List requestsResult = getRegRequests();
         
         requests = new LinkedList<>();
         for(Object request: requestsResult)
@@ -122,20 +114,19 @@ public class AdminController implements Serializable{
     
     public void accept(RegistrationRequest request){
         User user = new User(request, UserType.User);
-        
-        Session session = openTransaction();
 
-        deleteRegRequest(session, request.getUsername());
-        session.save(user);
-        
-        closeTransaction(session);
+        try(Transaction transaction = new Transaction()){
+            deleteRegRequest(transaction, request.getUsername());
+            transaction.save(user);
+        }
+
         requests.remove(request);
     }
 
     public void refuse(RegistrationRequest request){
-        Session session = openTransaction();
-        deleteRegRequest(session, request.getUsername());
-        closeTransaction(session);
+        try(Transaction transaction = new Transaction()){
+            deleteRegRequest(transaction, request.getUsername());
+        }
         
         if(request.isHasImage()){
             new File("C:\\Users\\Marko\\Desktop\\userImages\\"+request.getUsername() + ".jpg").delete();
@@ -165,19 +156,17 @@ public class AdminController implements Serializable{
     }
 
     public void setChosenDate(Date chosenDate) {
-        Session session = openTransaction();
-        
-        gameOnChosenDay = session.get(GameOfTheDay.class, chosenDate);
-        if(gameOnChosenDay!=null) {
-            chosenPair = gameOnChosenDay.getPairs().getText();
-            if(gameOnChosenDay.isPlayed()){
-                outputMessage = "This game has already been played";
+        try(Transaction transaction = new Transaction()){
+            gameOnChosenDay = transaction.get(GameOfTheDay.class, chosenDate);
+            if(gameOnChosenDay!=null) {
+                chosenPair = gameOnChosenDay.getPairs().getText();
+                if(gameOnChosenDay.isPlayed()){
+                    outputMessage = "This game has already been played";
+                }
+                else outputMessage = "This game can still be changed";
             }
-            else outputMessage = "This game can still be changed";
+            else outputMessage = "There is no game set on this date";
         }
-        else outputMessage = "There is no game set on this date";
-        
-        closeTransaction(session);
         
         this.chosenDate = chosenDate;
     }

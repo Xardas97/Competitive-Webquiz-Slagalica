@@ -5,7 +5,6 @@
  */
 package controllers;
 
-import static services.TransactionService.*;
 import entities.AcceptableWord;
 import entities.Asocijacija;
 import entities.WordPairs;
@@ -14,9 +13,9 @@ import java.nio.charset.StandardCharsets;
 import javax.annotation.ManagedBean;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
-import org.hibernate.Session;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.UploadedFile;
+import util.Transaction;
 
 /**
  *
@@ -41,10 +40,10 @@ public class SuperController implements Serializable{
     
     public void submitAsocijacije() {
         Asocijacija asocijacija = new Asocijacija(columns, result, resultEnd);
-        
-        Session session = openTransaction();
-        session.save(asocijacija);
-        closeTransaction(session);
+
+        try(Transaction transaction = new Transaction()) {
+            transaction.save(asocijacija);
+        }
         
         columns = COLUMN_PLACEHOLDERS;
         result = RESULT_PLACEHOLDERS;
@@ -52,16 +51,14 @@ public class SuperController implements Serializable{
     }
     
     public void submitSlagalica() {
-        Session session = openTransaction();
-        
-        for(String word: fileContent.split("\n")){
-            if(session.createQuery("FROM AcceptableWord WHERE word=?")
-                    .setParameter(0, word)
-                    .uniqueResult()==null)
-                session.save(new AcceptableWord(word));
+        try(Transaction transaction = new Transaction()) {
+            for (String word : fileContent.split("\n")) {
+                if (transaction.createQuery("FROM AcceptableWord WHERE word=?")
+                        .setParameter(0, word)
+                        .uniqueResult() == null)
+                    transaction.save(new AcceptableWord(word));
+            }
         }
-
-        closeTransaction(session);
     }
     
     public void handleUpload(FileUploadEvent event) {
@@ -72,10 +69,10 @@ public class SuperController implements Serializable{
     
     public void submitSpojnice(){
         WordPairs wordPairs = new WordPairs(text, pairs);
-        
-        Session session = openTransaction();
-        session.save(wordPairs);
-        closeTransaction(session);
+
+        try(Transaction transaction = new Transaction()) {
+            transaction.save(wordPairs);
+        }
         
         pairs = new String[10][2];
         text = "";

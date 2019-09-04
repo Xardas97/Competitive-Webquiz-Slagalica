@@ -5,7 +5,6 @@
  */
 package controllers;
 
-import static services.TransactionService.*;
 import entities.FinishedGame;
 import java.io.Serializable;
 import java.util.Date;
@@ -16,8 +15,8 @@ import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
 import org.hibernate.query.Query;
-import org.hibernate.Session;
 import util.SessionManager;
+import util.Transaction;
 
 /**
  *
@@ -66,12 +65,13 @@ public class MyGamesController implements Serializable{
     @PostConstruct
     public void initGames(){
         String username = SessionManager.getUser().getUsername();
-        Session session = openTransaction();
-        
-        Query query = session.createQuery("FROM FinishedGame WHERE blue=? OR red=?");
-        List results = query.setParameter(0, username).setParameter(1, username).list();
-        
-        closeTransaction(session);
+
+        List results;
+        try(Transaction transaction = new Transaction()) {
+            Query query = transaction.createQuery("FROM FinishedGame WHERE blue=? OR red=?");
+             results = query.setParameter(0, username).setParameter(1, username).list();
+        }
+
         
         myGames = new LinkedList<>();
         for(Object result: results)

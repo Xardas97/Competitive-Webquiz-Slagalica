@@ -5,8 +5,6 @@
  */
 package controllers;
 
-import static services.TransactionService.*;
-
 import exceptions.UploadFailedException;
 import util.PasswordManager;
 import entities.RegistrationRequest;
@@ -27,10 +25,11 @@ import javax.annotation.ManagedBean;
 import javax.enterprise.context.SessionScoped;
 import javax.imageio.ImageIO;
 import javax.inject.Named;
-import org.hibernate.Session;
+
 import org.primefaces.model.UploadedFile;
 import org.primefaces.shaded.commons.io.FilenameUtils;
 import util.SessionManager;
+import util.Transaction;
 
 /**
  *
@@ -61,27 +60,24 @@ public class LoginController implements Serializable {
     public void register(){
         if(!password.equals(confirmPassword)){ errorMessage = "Passwords don't match"; return; }
         
-        Session session = openTransaction();
+        try(Transaction transaction = new Transaction()) {
 
-        if(session.get(User.class, username)!=null || session.get(RegistrationRequest.class, username)!=null) {
-            errorMessage = "Username already exists";
-            closeTransaction(session);
-            return;
-        }
-
-        String extension = FilenameUtils.getExtension(uploadedFile.getFileName());
-        if(extension!=null) {
-            try {
-                saveImage(extension);
-            } catch (UploadFailedException e) {
-                closeTransaction(session);
+            if (transaction.get(User.class, username) != null || transaction.get(RegistrationRequest.class, username) != null) {
+                errorMessage = "Username already exists";
                 return;
             }
-        }
 
-        session.save(createRegistrationRequest(extension));
-        
-        closeTransaction(session);
+            String extension = FilenameUtils.getExtension(uploadedFile.getFileName());
+            if (extension != null) {
+                try {
+                    saveImage(extension);
+                } catch (UploadFailedException e) {
+                    return;
+                }
+            }
+
+            transaction.save(createRegistrationRequest(extension));
+        }
         
         errorMessage = "";
         firstPageTab = 0;
@@ -90,23 +86,20 @@ public class LoginController implements Serializable {
     public void changePassword(){
         if(!password.equals(confirmPassword)){ errorMessage = "Passwords don't match"; return; }
         
-        Session session = openTransaction();
-        User user = session.get(User.class, username);
-        
-        if(user!=null){
-            if(PasswordManager.checkPassword(oldPassword, user.getPassword())){
-                //username and password accurate, we can change his password
-                //User is still connected to the database, we don't need to manually update it
-                user.setPassword(PasswordManager.createPasswordDigest(password));
-                
-                errorMessage = "";
-                firstPageTab = 0;
-            }
-            else errorMessage = "Wrong Old Password";
-        } 
-        else errorMessage = "No such user exists";
+        try(Transaction transaction = new Transaction()) {
+            User user = transaction.get(User.class, username);
 
-        closeTransaction(session);
+            if (user != null) {
+                if (PasswordManager.checkPassword(oldPassword, user.getPassword())) {
+                    //username and password accurate, we can change his password
+                    //User is still connected to the database, we don't need to manually update it
+                    user.setPassword(PasswordManager.createPasswordDigest(password));
+
+                    errorMessage = "";
+                    firstPageTab = 0;
+                } else errorMessage = "Wrong Old Password";
+            } else errorMessage = "No such user exists";
+        }
     }
  
     /*public void createAdmin() {
@@ -122,11 +115,11 @@ public class LoginController implements Serializable {
         user.setHasImage(false);
         user.setType(UserType.Administrator);
         
-        Session session = openTransaction();
+        try(Transaction transaction = new Transaction()) {
 
-        session.save(user);
+        transaction.save(user);
         
-        closeTransaction(session);
+        closeTransaction(transaction);
         
         errorMessage = "";
         firstPageTab = 0;
@@ -138,9 +131,10 @@ public class LoginController implements Serializable {
     }
     
     public String login(){
-        Session session = openTransaction();
-        User user = session.get(User.class, username);
-        closeTransaction(session);
+        User user;
+        try(Transaction transaction = new Transaction()) {
+            user = transaction.get(User.class, username);
+        }
         
         if(user!=null){
             if(PasswordManager.checkPassword(password, user.getPassword())){

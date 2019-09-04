@@ -5,7 +5,6 @@
  */
 package controllers;
 
-import static services.TransactionService.*;
 import static services.ActiveGameService.*;
 import classes.GamePoints;
 import entities.*;
@@ -17,11 +16,11 @@ import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
 import games.*;
-import org.hibernate.Session;
 import services.ActiveGameService;
 import util.PointsManager;
 import util.PreparationManager;
 import util.SessionManager;
+import util.Transaction;
 
 /**
  *
@@ -374,14 +373,13 @@ public class GameController implements Serializable {
     private void prepareNextGameData() {
         preparationStarted = true;
 
-        Session session = openTransaction();
-        if (modeMultiplayer) {
-            prepareMultiplayerGameData(session);
+        try(Transaction transaction = new Transaction()) {
+            if (modeMultiplayer) {
+                prepareMultiplayerGameData(transaction);
+            } else if (nextGame == GameView.Slagalica) {
+                prepareSingleplayerGameData(transaction);
+            }
         }
-        else if(nextGame == GameView.Slagalica) {
-            prepareSingleplayerGameData(session);
-        }
-        closeTransaction(session);
     }
 
     private void updateTimer() {
@@ -390,8 +388,8 @@ public class GameController implements Serializable {
         lastTimerTick = currentTimerTick;
     }
 
-    private void prepareSingleplayerGameData(Session session) {
-        GameOfTheDay game = currentGameOfTheDay(session);
+    private void prepareSingleplayerGameData(Transaction transaction) {
+        GameOfTheDay game = currentGameOfTheDay(transaction);
 
         slagalica = new Slagalica(game.getLetters());
         mojBroj = new MojBroj(game.getNumbers());
@@ -402,37 +400,37 @@ public class GameController implements Serializable {
         game.setPlayed(true);
     }
 
-    private void prepareMultiplayerGameData(Session session) {
-        ActiveGame game = myActiveGame(session, username);
+    private void prepareMultiplayerGameData(Transaction transaction) {
+        ActiveGame game = myActiveGame(transaction, username);
 
         if(currentGame== GameView.Skocko && !roundTwo){
             skocko = new Skocko(PreparationManager
-                    .generateSkocko(session, game.getBlue(), game.getRed(), true, false));
+                    .generateSkocko(transaction, game.getBlue(), game.getRed(), true, false));
         }
         else if(currentGame== GameView.Spojnice && !roundTwo){
             spojnice = new Spojnice();
-            PreparationManager.generateSpojnice(session, game.getBlue(), game.getRed(), spojnice, false);
+            PreparationManager.generateSpojnice(transaction, game.getBlue(), game.getRed(), spojnice, false);
         }
         else switch (nextGame) {
                 case Slagalica:
                     slagalica = new Slagalica(PreparationManager
-                            .generateSlagalica(session, game.getBlue(), game.getRed(), true));
+                            .generateSlagalica(transaction, game.getBlue(), game.getRed(), true));
                     break;
                 case MojBroj:
                     mojBroj = new MojBroj(PreparationManager
-                            .generateMojBroj(session, game.getBlue(), game.getRed(), true));
+                            .generateMojBroj(transaction, game.getBlue(), game.getRed(), true));
                     break;
                 case Skocko:
                     skocko = new Skocko(PreparationManager
-                            .generateSkocko(session, game.getBlue(), game.getRed(), true, true));
+                            .generateSkocko(transaction, game.getBlue(), game.getRed(), true, true));
                     break;
                 case Spojnice:
                     spojnice = new Spojnice();
-                    PreparationManager.generateSpojnice(session, game.getBlue(), game.getRed(), spojnice, true);
+                    PreparationManager.generateSpojnice(transaction, game.getBlue(), game.getRed(), spojnice, true);
                     break;
                 case Asocijacije:
                     asocijacije = new Asocijacije(PreparationManager
-                            .generateAsocijacije(session, game.getBlue(), game.getRed()));
+                            .generateAsocijacije(transaction, game.getBlue(), game.getRed()));
                     break;
                 default: break;
             }
@@ -453,81 +451,78 @@ public class GameController implements Serializable {
     }
 
     private boolean loadDataAndSynchronize() {
-        Session session = openTransaction();
-        ActiveGame game = myActiveGame(session, username);
+        try(Transaction transaction = new Transaction()) {
+            ActiveGame game = myActiveGame(transaction, username);
 
-        boolean gameReady = false;
-        if((game.isBlueReady() || playerIsBlue) && (game.isRedReady() || !playerIsBlue)) {
-            //The other player is ready
-            gameReady = true;
-            //points of the last game are set, we can save them now
-            savePoints(session);
-            //Red reads the next game data and announces that he is ready
-            //Both reset the other's readiness
-            if (!playerIsBlue) {
-                loadPreparedGameData(session);
-                game.setRedReady(true);
-                game.setBlueReady(false);
+            boolean gameReady = false;
+            if ((game.isBlueReady() || playerIsBlue) && (game.isRedReady() || !playerIsBlue)) {
+                //The other player is ready
+                gameReady = true;
+                //points of the last game are set, we can save them now
+                savePoints(transaction);
+                //Red reads the next game data and announces that he is ready
+                //Both reset the other's readiness
+                if (!playerIsBlue) {
+                    loadPreparedGameData(transaction);
+                    game.setRedReady(true);
+                    game.setBlueReady(false);
+                } else {
+                    game.setRedReady(false);
+                }
             }
-            else {
-                game.setRedReady(false);
-            }
+            return gameReady;
         }
-
-        closeTransaction(session);
-        return gameReady;
     }
 
     private void updatePointsInDatabase(int myPoints) {
-        Session session = openTransaction();
-        GameVariables gameVars = null;
+        try(Transaction transaction = new Transaction()) {
+            GameVariables gameVars = null;
 
-        switch (currentGame) {
-            case MojBroj:
-                gameVars = myMojBrojVars(session, username);
-                if(playerIsBlue) {
-                    ((MojBrojVariables) gameVars).setDifferenceBlue(mojBroj.getDifference());
-                }
-                else {
-                    ((MojBrojVariables) gameVars).setDifferenceRed(mojBroj.getDifference());
-                }
-                break;
-            case Slagalica: gameVars = mySlagalicaVars(session, username); break;
-            case Skocko: if(roundTwo) { gameVars = mySkockoVars(session, username); } break;
-            case Spojnice: if(roundTwo){ gameVars = mySpojniceVars(session, username); } break;
-            case Asocijacije: gameVars = myAsocijacijeVars(session, username); break;
-            default: break;
-        }
+            switch (currentGame) {
+                case MojBroj:
+                    gameVars = myMojBrojVars(transaction, username);
+                    if (playerIsBlue) {
+                        ((MojBrojVariables) gameVars).setDifferenceBlue(mojBroj.getDifference());
+                    } else {
+                        ((MojBrojVariables) gameVars).setDifferenceRed(mojBroj.getDifference());
+                    }
+                    break;
+                case Slagalica: gameVars = mySlagalicaVars(transaction, username); break;
+                case Skocko: if (roundTwo) { gameVars = mySkockoVars(transaction, username); } break;
+                case Spojnice: if (roundTwo) { gameVars = mySpojniceVars(transaction, username); } break;
+                case Asocijacije: gameVars = myAsocijacijeVars(transaction, username); break;
+                default: break;
+            }
 
-        if(gameVars != null){
-            if(playerIsBlue) gameVars.setPointsBlue(myPoints);
-            else gameVars.setPointsRed(myPoints);
+            if (gameVars != null) {
+                if (playerIsBlue) gameVars.setPointsBlue(myPoints);
+                else gameVars.setPointsRed(myPoints);
+            }
         }
-        closeTransaction(session);
     }
 
-    private void loadPreparedGameData(Session session){
+    private void loadPreparedGameData(Transaction transaction){
         switch (nextGame) {
-            case Slagalica: slagalica = new Slagalica(PreparationManager.loadSlagalica(session, username)); break;
-            case MojBroj: mojBroj = new MojBroj(PreparationManager.loadMojBroj(session, username)); break;
-            case Skocko: skocko = new Skocko(PreparationManager.loadSkocko(session, username)); break;
+            case Slagalica: slagalica = new Slagalica(PreparationManager.loadSlagalica(transaction, username)); break;
+            case MojBroj: mojBroj = new MojBroj(PreparationManager.loadMojBroj(transaction, username)); break;
+            case Skocko: skocko = new Skocko(PreparationManager.loadSkocko(transaction, username)); break;
             case Spojnice:
                 spojnice = new Spojnice();
-                PreparationManager.loadSpojnice(session, username, spojnice); break;
-            case Asocijacije: asocijacije = new Asocijacije(PreparationManager.loadAsocijacije(session, username)); break;
+                PreparationManager.loadSpojnice(transaction, username, spojnice); break;
+            case Asocijacije: asocijacije = new Asocijacije(PreparationManager.loadAsocijacije(transaction, username)); break;
             default: break;
         }
     }
 
-    private void savePoints(Session session) {
+    private void savePoints(Transaction transaction) {
         if(currentGame!=null) {
             GameVariables gameVars = null;
             switch(currentGame) {
-                case Slagalica: gameVars = mySlagalicaVars(session, username); break;
-                case MojBroj: gameVars = myMojBrojVars(session, username); break;
-                case Skocko: if(roundTwo){ gameVars = mySkockoVars(session, username); } break;
-                case Spojnice: if(roundTwo){ gameVars = mySpojniceVars(session, username); } break;
-                case Asocijacije: gameVars = myAsocijacijeVars(session, username); break;
+                case Slagalica: gameVars = mySlagalicaVars(transaction, username); break;
+                case MojBroj: gameVars = myMojBrojVars(transaction, username); break;
+                case Skocko: if(roundTwo){ gameVars = mySkockoVars(transaction, username); } break;
+                case Spojnice: if(roundTwo){ gameVars = mySpojniceVars(transaction, username); } break;
+                case Asocijacije: gameVars = myAsocijacijeVars(transaction, username); break;
                 default: break;
             }
             int pointsBlue=0, pointsRed=0;
@@ -569,42 +564,44 @@ public class GameController implements Serializable {
     }
 
     private void gameOverSingleplayer() {
-        //count the total points and save the final database entry
         int totalPoints = 0;
-        for(GamePoints game: gamePoints) totalPoints+=game.blue;
+        for(GamePoints game: gamePoints) {
+            totalPoints+=game.blue;
+        }
         gamePoints.add(new GamePoints("Total", totalPoints));
 
-        Session session = openTransaction();
-        session.save(new SingleplayerGame(username, totalPoints));
-        closeTransaction(session);
+        try(Transaction transaction = new Transaction()) {
+            transaction.save(new SingleplayerGame(username, totalPoints));
+        }
     }
 
-    private void gameOverMultiplayer(){
-        //count the total points and save the final database entry
+    private void gameOverMultiplayer() {
         int totalRed = 0;
         int totalBlue = 0;
-        for(GamePoints game: gamePoints) { totalRed+=game.red; totalBlue+=game.blue; }
+        for(GamePoints game: gamePoints) {
+            totalRed+=game.red;
+            totalBlue+=game.blue;
+        }
         gamePoints.add(new GamePoints("Total", totalBlue, totalRed));
 
         //if it's your job, save the final database entry
         if(playerIsBlue){
-            Session session = openTransaction();
+            try(Transaction transaction = new Transaction()) {
 
-            cleanUpDatabase(session, username);
+                cleanUpDatabase(transaction, username);
 
-            ActiveGame activeGame = myActiveGame(session, username);
+                ActiveGame activeGame = myActiveGame(transaction, username);
 
-            FinishedGame finishedGame = new FinishedGame(activeGame, totalBlue, totalRed);
-            if(finishedGame.getPointsBlue()>finishedGame.getPointsRed())
-                finishedGame.setGameResult((short)1);
-            else if(finishedGame.getPointsBlue()<finishedGame.getPointsRed())
-                finishedGame.setGameResult((short)-1);
-            else finishedGame.setGameResult((short)0);
+                FinishedGame finishedGame = new FinishedGame(activeGame, totalBlue, totalRed);
+                if (finishedGame.getPointsBlue() > finishedGame.getPointsRed())
+                    finishedGame.setGameResult((short) 1);
+                else if (finishedGame.getPointsBlue() < finishedGame.getPointsRed())
+                    finishedGame.setGameResult((short) -1);
+                else finishedGame.setGameResult((short) 0);
 
-            session.delete(activeGame);
-            session.save(finishedGame);
-
-            closeTransaction(session);
+                transaction.delete(activeGame);
+                transaction.save(finishedGame);
+            }
         }
     }
 
@@ -617,28 +614,28 @@ public class GameController implements Serializable {
     }
 
     private void alternatingGamesTick() {
-        Session session = openTransaction();
-        switch(currentGame) {
-            case Skocko: {
-                if(skocko.isSidePlayer() == null){
-                    skocko.setSidePlayer(!myTurn());
+        try(Transaction transaction = new Transaction()) {
+            switch (currentGame) {
+                case Skocko: {
+                    if (skocko.isSidePlayer() == null) {
+                        skocko.setSidePlayer(!myTurn());
+                    }
+                    sidePlayerGameTicks(skocko, mySkockoVars(transaction, username));
+                    break;
                 }
-                sidePlayerGameTicks(skocko, mySkockoVars(session, username));
-                break;
-            }
-            case Spojnice: {
-                if(spojnice.isSidePlayer() == null){
-                    spojnice.setSidePlayer(!myTurn());
+                case Spojnice: {
+                    if (spojnice.isSidePlayer() == null) {
+                        spojnice.setSidePlayer(!myTurn());
+                    }
+                    sidePlayerGameTicks(spojnice, mySpojniceVars(transaction, username));
+                    break;
                 }
-                sidePlayerGameTicks(spojnice, mySpojniceVars(session, username));
-                break;
-            }
-            case Asocijacije: {
-                asocijacijeTicks(myAsocijacijeVars(session, username));
-                break;
+                case Asocijacije: {
+                    asocijacijeTicks(myAsocijacijeVars(transaction, username));
+                    break;
+                }
             }
         }
-        closeTransaction(session);
     }
 
     private void asocijacijeTicks(AsocijacijeVariables asocijacijeVars){
@@ -662,34 +659,30 @@ public class GameController implements Serializable {
     }
 
     private void synchronizeAsocijacijeData() {
-        Session session = openTransaction();
-
-        AsocijacijeVariables asocijacijeVars = myAsocijacijeVars(session, username);
-        if(!asocijacije.wasHit()){
-            asocijacijeVars.setMessage(asocijacije.getOpened(), asocijacije.getRevealedByPlayer(playerIsBlue), !blueIsPlaying);
-            blueIsPlaying = !blueIsPlaying;
+        try(Transaction transaction = new Transaction()) {
+            AsocijacijeVariables asocijacijeVars = myAsocijacijeVars(transaction, username);
+            if (!asocijacije.wasHit()) {
+                asocijacijeVars.setMessage(asocijacije.getOpened(), asocijacije.getRevealedByPlayer(playerIsBlue), !blueIsPlaying);
+                blueIsPlaying = !blueIsPlaying;
+            } else {
+                asocijacijeVars.setMessage(asocijacije.getOpened(), asocijacije.getRevealedByPlayer(playerIsBlue), blueIsPlaying);
+            }
         }
-        else {
-            asocijacijeVars.setMessage(asocijacije.getOpened(), asocijacije.getRevealedByPlayer(playerIsBlue), blueIsPlaying);
-        }
-
-        closeTransaction(session);
     }
 
     private void synchronizeSidePlayerGameDataAndCloseIfDone(SidePlayerGame game,
-                                                             BiFunction<Session, String, SidePlayerGameVariables> myVars) {
-        Session session = openTransaction();
-        SidePlayerGameVariables variables = myVars.apply(session, username);
+                                                             BiFunction<Transaction, String, SidePlayerGameVariables> myVars) {
+        try(Transaction transaction = new Transaction()) {
+            SidePlayerGameVariables variables = myVars.apply(transaction, username);
 
-        variables.updateVariables(game, playerIsBlue);
+            variables.updateVariables(game, playerIsBlue);
 
-        if (game.isCompleted()) {
-            startTheWaitingPeriod();
-        } else if (game.playerFinished()) {
-            finishSidePlayerGame(game, variables);
+            if (game.isCompleted()) {
+                startTheWaitingPeriod();
+            } else if (game.playerFinished()) {
+                finishSidePlayerGame(game, variables);
+            }
         }
-
-        closeTransaction(session);
     }
 
     private void sidePlayerGameTicks(SidePlayerGame game, SidePlayerGameVariables variables) {

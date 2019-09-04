@@ -5,7 +5,6 @@
  */
 package controllers;
 
-import static services.TransactionService.*;
 import entities.ActiveGame;
 import entities.User;
 import java.io.Serializable;
@@ -15,9 +14,9 @@ import javax.annotation.ManagedBean;
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
-import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import util.SessionManager;
+import util.Transaction;
 
 /**
  *
@@ -32,12 +31,11 @@ public class GamelistController implements Serializable{
     
     @PostConstruct
     public void initGames(){
-        Session session = openTransaction();
-        
-        NativeQuery query = session.createSQLQuery("SELECT * FROM gamequeue");
-        List results = query.list();
-        
-        closeTransaction(session);
+        List results;
+        try(Transaction transaction = new Transaction()) {
+            NativeQuery query = transaction.createSQLQuery("SELECT * FROM gamequeue");
+            results = query.list();
+        }
 
         games = new LinkedList<>();
         for(Object result: results)
@@ -48,16 +46,14 @@ public class GamelistController implements Serializable{
     public String join(String bluePlayer){
         User redPlayer = SessionManager.getUser();
         ActiveGame game = new ActiveGame(bluePlayer, redPlayer.getUsername());
-        
-        Session session = openTransaction();
-        
-        NativeQuery query = session.createSQLQuery("DELETE FROM gamequeue WHERE blue=?");
-        query.setParameter(0, bluePlayer);
-        query.executeUpdate();
-        
-        session.save(game);
 
-        closeTransaction(session);
+        try(Transaction transaction = new Transaction()) {
+            NativeQuery query = transaction.createSQLQuery("DELETE FROM gamequeue WHERE blue=?");
+            query.setParameter(0, bluePlayer);
+            query.executeUpdate();
+
+            transaction.save(game);
+        }
         
         SessionManager.setPlayerSide("red");
         SessionManager.setGameMode("multiplayer");
