@@ -17,15 +17,13 @@ public class MojBroj {
         this.numbers = numbers;
     }
 
-    public String getNumberOrOperation(int i){
-        if(i<7) return numbers[i];
-        else return OPERATIONS[i-7];
-    }
-
     public void chooseNumberOrOperation(int i){
         message = "";
         if(i<7) {
-            if(lastUsedNumber) { message = "Can't use a Number again!"; return; }
+            if(lastUsedNumber) {
+                message = "Can't use a Number again!";
+                return;
+            }
             word += numbers[i];
             buttons[i-1] = false;
             lastUsedNumber = true;
@@ -36,15 +34,20 @@ public class MojBroj {
         }
     }
 
-    public boolean buttonAvailable(int i){
-        if(i<7) return buttons[i-1];
-        return true;
-    }
-
     public void reset(){
         for(int i=0; i<6; i++) buttons[i] = true;
         word = "";
         message = "";
+    }
+
+    public String getNumberOrOperation(int i){
+        if(i<7) return numbers[i];
+        else return OPERATIONS[i-7];
+    }
+
+    public boolean buttonAvailable(int i){
+        if(i<7) return buttons[i-1];
+        return true;
     }
 
     public String getDesiredNumber() {

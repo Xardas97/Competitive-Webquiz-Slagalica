@@ -3,8 +3,7 @@ package games;
 import entities.SidePlayerGameVariables;
 import entities.SpojniceVariables;
 import entities.WordPairs;
-
-import static util.PreparationManager.createSpojniceWordAndPositionArrays;
+import util.PreparationManager;
 
 public class Spojnice implements SidePlayerGame {
     private int activeLeft = 0;
@@ -24,22 +23,41 @@ public class Spojnice implements SidePlayerGame {
     public Spojnice(WordPairs pairs) {
         init();
         gameName = pairs.getText();
-        createSpojniceWordAndPositionArrays(pairs.getPairs().split("-"), this);
+        PreparationManager.createSpojniceWordAndPositionArrays(pairs.getPairs().split("-"), this);
     }
 
     private void init() {
-        for(int i=0; i<10; i++) hitByBlue[i] = hitByRed[i] = false;
+        for(int i=0; i<10; i++) {
+            hitByBlue[i] = hitByRed[i] = false;
+        }
     }
 
     public void submitPair(int i, boolean playerBlue) {
         if(sidePlayer == null) sidePlayer = Boolean.FALSE;
-        if(activeLeft == pairPosition[i]){
+
+        if(activeLeft == pairPosition[i]) {
             points++;
             if(playerBlue) hitByBlue[activeLeft] = true;
             else hitByRed[activeLeft] = true;
         }
+
         activeLeft++;
-        while(activeLeft<10 && (hitByBlue[activeLeft] || hitByRed[activeLeft])) activeLeft++;
+        while(activeLeft<10 && (hitByBlue[activeLeft] || hitByRed[activeLeft])) {
+            activeLeft++;
+        }
+    }
+
+    @Override
+    public void loadVariables(SidePlayerGameVariables variables, boolean forBlue) {
+        if(variables instanceof SpojniceVariables) {
+            activeLeft = 10;
+            if(forBlue){
+                setHitByArray(((SpojniceVariables) variables).getHitByBlue(), hitByBlue);
+            }
+            else{
+                setHitByArray(((SpojniceVariables) variables).getHitByRed(), hitByRed);
+            }
+        }
     }
 
     public String hitByMeAsString(boolean playerBlue) {
@@ -143,19 +161,6 @@ public class Spojnice implements SidePlayerGame {
     public void getReadyForSidePlayer() {
         activeLeft = 0;
         while(hitByBlue[activeLeft] || hitByRed[activeLeft]) activeLeft++;
-    }
-
-    @Override
-    public void updateVariables(SidePlayerGameVariables variables, boolean forBlue) {
-        if(variables instanceof SpojniceVariables) {
-            activeLeft = 10;
-            if(forBlue){
-                setHitByArray(((SpojniceVariables) variables).getHitByBlue(), hitByBlue);
-            }
-            else{
-                setHitByArray(((SpojniceVariables) variables).getHitByRed(), hitByRed);
-            }
-        }
     }
 
     public int getPoints() {

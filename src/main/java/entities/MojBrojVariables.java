@@ -102,6 +102,15 @@ public class MojBrojVariables implements GameVariables, Serializable {
         this.differenceBlue = differenceBlue;
     }
 
+    public void setDifference(int difference, boolean forBlue){
+        if(forBlue) {
+            setDifferenceBlue(difference);
+        }
+        else {
+            setDifferenceRed(difference);
+        }
+    }
+
     public int getDifferenceRed() {
         return differenceRed;
     }

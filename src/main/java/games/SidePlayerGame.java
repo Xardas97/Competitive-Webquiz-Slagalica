@@ -8,5 +8,5 @@ public interface SidePlayerGame {
     boolean isCompleted();
     boolean playerFinished();
     void getReadyForSidePlayer();
-    void updateVariables(SidePlayerGameVariables variables, boolean forBlue);
+    void loadVariables(SidePlayerGameVariables variables, boolean forBlue);
 }

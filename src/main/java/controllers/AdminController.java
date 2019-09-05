@@ -60,12 +60,12 @@ public class AdminController implements Serializable{
     
     public void submit() {
         try(Transaction transaction = new Transaction()) {
-            if(gameOnChosenDay !=null){
+            if(gameOnChosenDay !=null) {
                 gameOnChosenDay = transaction.get(GameOfTheDay.class, chosenDate);
                 gameOnChosenDay.setPairs(spojniceMap.get(chosenPair));
                 gameOnChosenDay.setAsocijacija(asocijacijeMap.get(chosenAsocijacija));
             }
-            else{
+            else {
                 GameOfTheDay game = new GameOfTheDay(chosenDate, spojniceMap.get(chosenPair), asocijacijeMap.get(chosenAsocijacija));
                 transaction.save(game);
                 outputMessage = "This game can still be changed";

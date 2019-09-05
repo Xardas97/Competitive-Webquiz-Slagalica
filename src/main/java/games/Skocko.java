@@ -24,6 +24,16 @@ public class Skocko implements SidePlayerGame{
         init();
     }
 
+    private void init() {
+        currentRow = currentSymbol = 0;
+        completed = false;
+        input = new String[7][4];
+        feedback = new int[7][2];
+        for (int i = 0; i < 7; i++)
+            for (int j = 0; j < 4; j++)
+                input[i][j] = "x";
+    }
+
     public void chooseSymbol(int i) {
         input[currentRow][currentSymbol] = SYMBOLS[i];
         currentSymbol++;
@@ -39,12 +49,17 @@ public class Skocko implements SidePlayerGame{
         feedback[currentRow][0] = feedback[currentRow][1] = 0;
         boolean[] hitInput = {false, false, false, false};
         boolean[] hitSecret = {false, false, false, false};
+
         for(int i=0; i<4; i++)
-            if(input[currentRow][i].equals(secretCombo[i])){ feedback[currentRow][0]++; hitSecret[i]=hitInput[i]=true; }
+            if(input[currentRow][i].equals(secretCombo[i])) {
+                hitSecret[i] = hitInput[i] = true;
+                feedback[currentRow][0]++;
+            }
+
         for(int i=0; i<4; i++)
             if(!hitInput[i])
                 for(int j=0; j<4; j++)
-                    if(!hitSecret[j] && input[currentRow][i].equals(secretCombo[j])){
+                    if(!hitSecret[j] && input[currentRow][i].equals(secretCombo[j])) {
                         hitInput[i] = hitSecret[j] = true;
                         feedback[currentRow][1]++;
                         break;
@@ -56,19 +71,17 @@ public class Skocko implements SidePlayerGame{
         }
     }
 
-    private void init() {
-        currentRow = currentSymbol = 0;
-        completed = false;
-        input = new String[7][4];
-        feedback = new int[7][2];
-        for (int i = 0; i < 7; i++)
-            for (int j = 0; j < 4; j++)
-                input[i][j] = "x";
-    }
-
     public void resetCurrentRow(){
         currentSymbol = 0;
         for(int i=0; i<4; i++) input[currentRow][i] = "x";
+    }
+
+    @Override
+    public void loadVariables(SidePlayerGameVariables variables, boolean forBlue) {
+        if(variables instanceof SkockoVariables){
+            SkockoVariables skockoVars = (SkockoVariables) variables;
+            setInputAndFeedback(skockoVars.getInputCombos(), (skockoVars.getOutputCombos()));
+        }
     }
 
     private void setInputAndFeedback(String inputString, String feedbackString) {
@@ -180,13 +193,5 @@ public class Skocko implements SidePlayerGame{
     @Override
     public void getReadyForSidePlayer() {
         currentRow = 6;
-    }
-
-    @Override
-    public void updateVariables(SidePlayerGameVariables variables, boolean forBlue) {
-        if(variables instanceof SkockoVariables){
-            SkockoVariables skockoVars = (SkockoVariables) variables;
-            setInputAndFeedback(skockoVars.getInputCombos(), (skockoVars.getOutputCombos()));
-        }
     }
 }

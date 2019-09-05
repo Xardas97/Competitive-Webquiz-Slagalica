@@ -41,15 +41,13 @@ public class Asocijacije {
     public void submit(boolean playerBlue) {
         fieldWasOpened = false;
 
-        boolean[] myRevealArray;
-        if (playerBlue) myRevealArray = blueRevealed;
-        else myRevealArray = redRevealed;
+        boolean[] myRevealArray = playerBlue? blueRevealed: redRevealed;
 
         int submitted;
         if (wasHit) submitted = 4;
         else
             for (submitted = 0; submitted < 5; submitted++)
-                if (!opened[16 + submitted] && !"".equals(openedResults[submitted])) break;
+                if (!(opened[16 + submitted] || "".equals(openedResults[submitted]))) break;
 
         wasHit = false;
 
@@ -85,6 +83,25 @@ public class Asocijacije {
         opened[i] = true;
     }
 
+    public boolean getOpenFieldDisabled(int i){
+        return opened[i] || fieldWasOpened;
+    }
+
+    public void loadOpenedArray(String openedAsString){
+        String[] temp = openedAsString.split(" ");
+        for (int i = 0; i < 21; i++)
+            if ("1".equals(temp[i])) opened[i] = true;
+    }
+
+    public void loadRevealedByArray(AsocijacijeVariables variables, boolean forBlue){
+        if(forBlue){
+            setRevealedByArray(variables.getRevealedByBlue(), blueRevealed);
+        }
+        else{
+            setRevealedByArray(variables.getRevealedByRed(), redRevealed);
+        }
+    }
+
     public void openAll() {
         for(int i=0; i<21; i++) opened[i] = true;
     }
@@ -108,25 +125,6 @@ public class Asocijacije {
         if(blueRevealed[i-16]) return "background-color: #036fab;";
         if(redRevealed[i-16]) return "background-color: red;";
         return "";
-    }
-
-    public boolean getOpenFieldDisabled(int i){
-        return opened[i] || fieldWasOpened;
-    }
-
-    public void setOpenedArray(String openedAsString){
-        String[] temp = openedAsString.split(" ");
-        for (int i = 0; i < 21; i++)
-            if ("1".equals(temp[i])) opened[i] = true;
-    }
-
-    public void setRevealedByArray(AsocijacijeVariables variables, boolean forBlue){
-        if(forBlue){
-            setRevealedByArray(variables.getRevealedByBlue(), blueRevealed);
-        }
-        else{
-            setRevealedByArray(variables.getRevealedByRed(), redRevealed);
-        }
     }
 
     private void setRevealedByArray(String revealedAsString, boolean[] revealed) {

@@ -48,7 +48,7 @@ public class AsocijacijeVariables implements GameVariables, Serializable{
     
     public AsocijacijeVariables(){}
 
-    public void setMessage(boolean[] opened, boolean[] revealedArray, boolean nextPlayer){
+    public void updateVariables(boolean[] opened, boolean[] revealedArray, boolean nextPlayer){
         StringBuilder builder = new StringBuilder();
         if(opened[0]) builder.append("1");
         else builder.append("0");

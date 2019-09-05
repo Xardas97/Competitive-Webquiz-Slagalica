@@ -18,13 +18,15 @@ public class Slagalica {
         buttons[i] = false;
     }
 
-    public boolean buttonAvailable(int i){
-        return buttons[i];
+    public void reset() {
+        for(int i=0; i<12; i++) {
+            buttons[i] = true;
+        }
+        word = "";
     }
 
-    public void reset() {
-        for(int i=0; i<12; i++) buttons[i] = true;
-        word = "";
+    public boolean buttonAvailable(int i){
+        return buttons[i];
     }
 
     public String getLetter(int i) {
