@@ -1,11 +1,13 @@
 package games;
 
-import entities.SidePlayerGameVariables;
-import entities.SpojniceVariables;
-import entities.WordPairs;
-import util.PreparationManager;
+import controllers.GameController.GameView;
+import entities.*;
+import services.ActiveGameService;
+import util.Transaction;
 
 public class Spojnice implements SidePlayerGame {
+    private static final GameView MY_GAME = GameView.Spojnice;
+    private static final GameView NEXT_GAME = GameView.Asocijacije;
     private int activeLeft = 0;
     private String gameName;
     private final String[][] words = new String[10][2];
@@ -16,14 +18,13 @@ public class Spojnice implements SidePlayerGame {
     private Boolean sidePlayer = null;
     private boolean completed = false;
 
-    public Spojnice() {
+    Spojnice() {
         init();
     }
 
-    public Spojnice(WordPairs pairs) {
+    Spojnice(WordPairs pairs) {
         init();
         gameName = pairs.getText();
-        PreparationManager.createSpojniceWordAndPositionArrays(pairs.getPairs().split("-"), this);
     }
 
     private void init() {
@@ -163,7 +164,23 @@ public class Spojnice implements SidePlayerGame {
         while(hitByBlue[activeLeft] || hitByRed[activeLeft]) activeLeft++;
     }
 
+    @Override
     public int getPoints() {
         return points;
+    }
+
+    @Override
+    public SidePlayerGameVariables getMyVars(Transaction t, String username) {
+        return ActiveGameService.mySpojniceVars(t, username);
+    }
+
+    @Override
+    public GameView getNextView() {
+        return NEXT_GAME;
+    }
+
+    @Override
+    public GameView getMyView() {
+        return MY_GAME;
     }
 }

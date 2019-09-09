@@ -1,9 +1,14 @@
 package games;
 
+import controllers.GameController.GameView;
 import entities.SidePlayerGameVariables;
 import entities.SkockoVariables;
+import services.ActiveGameService;
+import util.Transaction;
 
-public class Skocko implements SidePlayerGame{
+public class Skocko implements SidePlayerGame {
+    private static final GameView MY_GAME = GameView.Skocko;
+    private static final GameView NEXT_GAME = GameView.Spojnice;
     private static final String[] SYMBOLS = {"Pik", "Tref", "Herc", "Karo", "Zvezda", "Skocko"};
     private final String[] secretCombo;
     private String[][] input;
@@ -14,12 +19,12 @@ public class Skocko implements SidePlayerGame{
     private Boolean sidePlayer = null;
     private boolean completed;
 
-    public Skocko(String secretCombo) {
+    Skocko(String secretCombo) {
         this.secretCombo = secretCombo.split(" ");
         init();
     }
 
-    public Skocko(String[] secretCombo) {
+    Skocko(String[] secretCombo) {
         this.secretCombo = secretCombo;
         init();
     }
@@ -176,8 +181,24 @@ public class Skocko implements SidePlayerGame{
         this.sidePlayer = sidePlayer;
     }
 
+    @Override
     public int getPoints() {
         return points;
+    }
+
+    @Override
+    public SidePlayerGameVariables getMyVars(Transaction t, String username) {
+        return ActiveGameService.mySkockoVars(t, username);
+    }
+
+    @Override
+    public GameView getNextView() {
+        return NEXT_GAME;
+    }
+
+    @Override
+    public GameView getMyView() {
+        return MY_GAME;
     }
 
     @Override

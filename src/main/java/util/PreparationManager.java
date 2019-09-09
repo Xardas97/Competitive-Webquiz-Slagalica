@@ -56,7 +56,7 @@ public class PreparationManager {
         return generatedNumbers;
     }
     
-    public static String generateSkocko(Transaction transaction, String blue, String red, boolean multiplayer, boolean newEntry){
+    public static String generateSkocko(Transaction transaction, String blue, String red, boolean multiplayer){
         Random rnd = ThreadLocalRandom.current();
         StringBuilder builder = new StringBuilder();
         builder.append(SKOCKO_SYMBOLS[rnd.nextInt(6)]);
@@ -65,30 +65,39 @@ public class PreparationManager {
         }
         
         String generatedCombo = builder.toString();
-        if(multiplayer) 
-            if(newEntry) transaction.save(new SkockoVariables(blue, red, generatedCombo));
-            else{
-                Query query = transaction.createQuery("FROM SkockoVariables WHERE blue=?");
-                SkockoVariables skockoVars = (SkockoVariables) query
-                        .setParameter(0, blue)
-                        .uniqueResult();
+        if(multiplayer) {
+            Query query = transaction.createQuery("FROM SkockoVariables WHERE blue=?");
+            SkockoVariables skockoVars = (SkockoVariables) query
+                    .setParameter(0, blue)
+                    .uniqueResult();
+
+            if (skockoVars == null) {
+                skockoVars = new SkockoVariables(blue, red, generatedCombo);
+                transaction.save(skockoVars);
+            }
+            else {
                 skockoVars.prepareNewGame(generatedCombo, false);
             }
+        }
         return generatedCombo;
     }
     
-    public static void generateSpojnice(Transaction transaction, String blue, String red, Spojnice spojnice, boolean newEntry){
+    public static void generateSpojnice(Transaction transaction, String blue, String red, Spojnice spojnice){
         WordPairs wordPairs = (WordPairs) transaction
                 .createQuery("FROM WordPairs ORDER BY rand(5)")
                 .setMaxResults(1).uniqueResult();
         
         String gameText = wordPairs.getText();
         createSpojniceWordAndPositionArrays(wordPairs.getPairs().split("-"), spojnice);
-        
-        if (newEntry) transaction.save(new SpojniceVariables(blue, red, spojnice.getPairPosition(), wordPairs));
+
+        Query query = transaction.createQuery("FROM SpojniceVariables WHERE blue=?");
+        SpojniceVariables spojniceVars = (SpojniceVariables) query.setParameter(0, blue).uniqueResult();
+
+        if (spojniceVars == null) {
+            spojniceVars = new SpojniceVariables(blue, red, spojnice.getPairPosition(), wordPairs);
+            transaction.save(spojniceVars);
+        }
         else {
-            Query query = transaction.createQuery("FROM SpojniceVariables WHERE blue=?");
-            SpojniceVariables spojniceVars = (SpojniceVariables) query.setParameter(0, blue).uniqueResult();
             spojniceVars.prepareNewGame(spojnice.getPairPosition(), wordPairs, false);
         }
 
@@ -153,7 +162,7 @@ public class PreparationManager {
     }
     
     public static String generateSkocko(){
-        return PreparationManager.generateSkocko(null, null, null, false, true);
+        return PreparationManager.generateSkocko(null, null, null, false);
     }
         
     public static void createSpojniceWordAndPositionArrays(String[] pairs, Spojnice spojnice){

@@ -1,9 +1,14 @@
 package games;
 
-import entities.Asocijacija;
-import entities.AsocijacijeVariables;
+import controllers.GameController.GameView;
+import entities.*;
+import services.ActiveGameService;
+import util.Transaction;
 
-public class Asocijacije {
+public class Asocijacije implements Game {
+    private static final GameView MY_GAME = GameView.Asocijacije;
+    private static final GameView NEXT_GAME = GameView.GameOver;
+    private static final int GAME_LENGTH = 240;
     private static final String[] PLACEHOLDERS = {"A", "B", "C", "D", "? ? ?"};
     private final String[] columns;
     private final String[][] results;
@@ -15,7 +20,7 @@ public class Asocijacije {
     private boolean fieldWasOpened = false;
     private boolean wasHit = false;
 
-    public Asocijacije(Asocijacija asocijacija) {
+    Asocijacije(Asocijacija asocijacija) {
         opened = new boolean[21];
         for(int i=0; i<21; i++) opened[i] = false;
 
@@ -171,7 +176,28 @@ public class Asocijacije {
         return wasHit;
     }
 
+    @Override
     public int getPoints() {
         return points;
+    }
+
+    @Override
+    public GameVariables getMyVars(Transaction t, String username) {
+        return ActiveGameService.myAsocijacijeVars(t, username);
+    }
+
+    @Override
+    public GameView getNextView() {
+        return NEXT_GAME;
+    }
+
+    @Override
+    public GameView getMyView() {
+        return MY_GAME;
+    }
+
+    @Override
+    public int getGameLength() {
+        return GAME_LENGTH;
     }
 }

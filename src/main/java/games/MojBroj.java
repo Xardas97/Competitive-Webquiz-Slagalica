@@ -1,6 +1,14 @@
 package games;
 
-public class MojBroj {
+import controllers.GameController.GameView;
+import entities.GameVariables;
+import services.ActiveGameService;
+import util.PointsManager;
+import util.Transaction;
+
+public class MojBroj implements Game {
+    private static final GameView MY_GAME = GameView.MojBroj;
+    private static final GameView NEXT_GAME = GameView.Skocko;
     private static final String[] OPERATIONS = {"+", "-", "*", "/", "(", ")"};
     private final boolean[] buttons = {true, true, true, true, true, true};
     private final String[] numbers;
@@ -9,11 +17,11 @@ public class MojBroj {
     private boolean lastUsedNumber = false;
     private int difference;
 
-    public MojBroj(String numbers) {
+    MojBroj(String numbers) {
         this.numbers = numbers.split(" ");
     }
 
-    public MojBroj(String[] numbers) {
+    MojBroj(String[] numbers) {
         this.numbers = numbers;
     }
 
@@ -69,5 +77,25 @@ public class MojBroj {
 
     public void setDifference(int difference) {
         this.difference = difference;
+    }
+
+    @Override
+    public int getPoints() {
+        return PointsManager.mojBroj(this);
+    }
+
+    @Override
+    public GameVariables getMyVars(Transaction t, String username) {
+        return ActiveGameService.myMojBrojVars(t, username);
+    }
+
+    @Override
+    public GameView getNextView() {
+        return NEXT_GAME;
+    }
+
+    @Override
+    public GameView getMyView() {
+        return MY_GAME;
     }
 }

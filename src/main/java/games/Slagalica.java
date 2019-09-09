@@ -1,15 +1,23 @@
 package games;
 
-public class Slagalica {
+import controllers.GameController.GameView;
+import entities.GameVariables;
+import services.ActiveGameService;
+import util.PointsManager;
+import util.Transaction;
+
+public class Slagalica implements Game {
+    private static final GameView MY_GAME = GameView.Slagalica;
+    private static final GameView NEXT_GAME = GameView.MojBroj;
     private final boolean[] buttons = {true, true, true, true, true, true, true, true, true, true, true, true};
     private final String[] letters;
     private String word = "";
 
-    public Slagalica(String letters) {
+    Slagalica(String letters) {
         this.letters = letters.split(" ");
     }
 
-    public Slagalica(String[] letters) {
+    Slagalica(String[] letters) {
         this.letters = letters;
     }
 
@@ -39,5 +47,25 @@ public class Slagalica {
 
     public String getWord() {
         return word;
+    }
+
+    @Override
+    public int getPoints() {
+        return PointsManager.slagalica(this);
+    }
+
+    @Override
+    public GameVariables getMyVars(Transaction t, String username) {
+        return ActiveGameService.mySlagalicaVars(t, username);
+    }
+
+    @Override
+    public GameView getNextView() {
+        return NEXT_GAME;
+    }
+
+    @Override
+    public GameView getMyView() {
+        return MY_GAME;
     }
 }

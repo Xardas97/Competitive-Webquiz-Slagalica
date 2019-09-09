@@ -8,7 +8,6 @@ package controllers;
 import entities.ActiveGame;
 import entities.User;
 import java.io.Serializable;
-import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.ManagedBean;
 import javax.annotation.PostConstruct;

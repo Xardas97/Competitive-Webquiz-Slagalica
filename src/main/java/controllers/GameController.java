@@ -28,11 +28,15 @@ import javax.inject.Named;
 @ViewScoped
 @Named(value="GameController")
 public class GameController implements Serializable {
-    public enum GameView{Waiting, Slagalica, MojBroj, Skocko, Spojnice, Asocijacije, GameOver}
+    public enum GameView { Waiting, Slagalica, MojBroj, Skocko, Spojnice, Asocijacije, GameOver }
+
     private static final Set<GameView> ALTERNATING_GAMES =
             new HashSet<>(Arrays.asList(GameView.Skocko, GameView.Spojnice, GameView.Asocijacije));
+    private static final Set<GameView> TWO_ROUND_GAMES =
+            new HashSet<>(Arrays.asList(GameView.Skocko, GameView.Spojnice));
 
-    private GameView currentView, nextGame, currentGame;
+    private GameView currentView, nextView;
+    private Game currentGame;
 
     private int timer;
     private long lastTimerTick;
@@ -58,9 +62,8 @@ public class GameController implements Serializable {
      */
 
     @PostConstruct
-    private void init(){
-        currentGame = null;
-        nextGame = GameView.Slagalica;
+    private void init() {
+        nextView = GameView.Slagalica;
         currentView = GameView.Waiting;
         username = SessionManager.getUser().getUsername();
         gameIsMultiplayer = "multiplayer".equals(SessionManager.getGameMode());
@@ -97,7 +100,7 @@ public class GameController implements Serializable {
     private void runWhileInGame(){
         updateTimer();
         // if it's one of the games where players alternate call alternatingGamesTick() and exit
-        if(gameIsMultiplayer && !waitingPeriod && ALTERNATING_GAMES.contains(currentGame)) {
+        if(gameIsMultiplayer && !waitingPeriod && ALTERNATING_GAMES.contains(currentGame.getMyView())) {
             runWhileInAlternatingGame();
             return;
         }
@@ -110,7 +113,7 @@ public class GameController implements Serializable {
      * and sends us to the waiting screen.
      */
     public void finish() {
-        int myPoints = getMyCurrentGamePoints();
+        int myPoints = currentGame.getPoints();
 
         if (gameIsMultiplayer) {
             updatePointsInDatabase(myPoints);
@@ -119,7 +122,7 @@ public class GameController implements Serializable {
                 prepareNextMultiplayerGameData();
             }
         } else {
-            gamePoints.add(new GamePoints(currentGame, myPoints));
+            gamePoints.add(new GamePoints(currentGame.getMyView(), myPoints));
             startNextGame();
         }
     }
@@ -378,11 +381,11 @@ public class GameController implements Serializable {
         try (Transaction transaction = new Transaction()) {
             GameOfTheDay game = currentGameOfTheDay(transaction);
 
-            slagalica = new Slagalica(game.getLetters());
-            mojBroj = new MojBroj(game.getNumbers());
-            skocko = new Skocko(game.getSecretCombo());
-            spojnice = new Spojnice(game.getPairs());
-            asocijacije = new Asocijacije(game.getAsocijacija());
+            slagalica = SlagalicaFactory.create(game);
+            mojBroj = MojBrojFactory.create(game);
+            skocko = SkockoFactory.create(game);
+            spojnice = SpojniceFactory.create(game);
+            asocijacije = AsocijacijeFactory.create(game);
 
             game.setPlayed(true);
         }
@@ -392,29 +395,13 @@ public class GameController implements Serializable {
         try(Transaction transaction = new Transaction()) {
             ActiveGame game = myActiveGame(transaction, username);
 
-            switch (nextGame) {
-                case Slagalica:
-                    slagalica = new Slagalica(PreparationManager
-                            .generateSlagalica(transaction, game.getBlue(), game.getRed(), true));
-                    break;
-                case MojBroj:
-                    mojBroj = new MojBroj(PreparationManager
-                            .generateMojBroj(transaction, game.getBlue(), game.getRed(), true));
-                    break;
-                case Skocko:
-                    skocko = new Skocko(PreparationManager
-                            .generateSkocko(transaction, game.getBlue(), game.getRed(), true, !roundTwo));
-                    break;
-                case Spojnice:
-                    spojnice = new Spojnice();
-                    PreparationManager.generateSpojnice(transaction, game.getBlue(), game.getRed(), spojnice, !roundTwo);
-                    break;
-                case Asocijacije:
-                    asocijacije = new Asocijacije(PreparationManager
-                            .generateAsocijacije(transaction, game.getBlue(), game.getRed()));
-                    break;
-                default:
-                    break;
+            switch (nextView) {
+                case Slagalica: slagalica = SlagalicaFactory.create(game, transaction); break;
+                case MojBroj: mojBroj = MojBrojFactory.create(game, transaction); break;
+                case Skocko: skocko = SkockoFactory.create(game, transaction); break;
+                case Spojnice: spojnice = SpojniceFactory.create(game, transaction); break;
+                case Asocijacije: asocijacije = AsocijacijeFactory.create(game, transaction); break;
+                default: break;
             }
             // Read synchronizeNextGameData() method documentation
             game.setBlueReady(true);
@@ -432,7 +419,7 @@ public class GameController implements Serializable {
 
                 boolean otherPlayerReady = playerIsBlue? game.isRedReady(): game.isBlueReady();
                 if (otherPlayerReady) {
-                    savePoints(transaction);
+                    loadPoints(transaction);
 
                     if(playerIsBlue) {
                         game.setRedReady(false);
@@ -447,66 +434,55 @@ public class GameController implements Serializable {
         }
     }
 
-    private void savePoints(Transaction transaction) {
-        if(currentGame != null) {
-            GameVariables gameVars = null;
-            switch(currentGame) {
-                case Slagalica: gameVars = mySlagalicaVars(transaction, username); break;
-                case MojBroj: gameVars = myMojBrojVars(transaction, username); break;
-                case Skocko: if(roundTwo){ gameVars = mySkockoVars(transaction, username); } break;
-                case Spojnice: if(roundTwo){ gameVars = mySpojniceVars(transaction, username); } break;
-                case Asocijacije: gameVars = myAsocijacijeVars(transaction, username); break;
-                default: break;
-            }
-            if(gameVars != null) {
-                gameVars.fixPoints();
-                gamePoints.add(new GamePoints(currentGame, gameVars.getPointsBlue(), gameVars.getPointsRed()));
-            }
+    private void loadPoints(Transaction transaction) {
+        if(currentGame != null && !roundOneOfTwo()) {
+            GameVariables gameVars = currentGame.getMyVars(transaction, username);
+            gameVars.fixPoints();
+            gamePoints.add(new GamePoints(currentGame.getMyView(), gameVars.getPointsBlue(), gameVars.getPointsRed()));
         }
     }
 
     private void loadPreparedGameData(Transaction transaction){
-        switch (nextGame) {
-            case Slagalica: slagalica = new Slagalica(PreparationManager.loadSlagalica(transaction, username)); break;
-            case MojBroj: mojBroj = new MojBroj(PreparationManager.loadMojBroj(transaction, username)); break;
-            case Skocko: skocko = new Skocko(PreparationManager.loadSkocko(transaction, username)); break;
-            case Spojnice:
-                spojnice = new Spojnice();
-                PreparationManager.loadSpojnice(transaction, username, spojnice); break;
-            case Asocijacije: asocijacije = new Asocijacije(PreparationManager.loadAsocijacije(transaction, username)); break;
+        switch (nextView) {
+            case Slagalica: slagalica = SlagalicaFactory.load(username, transaction); break;
+            case MojBroj: mojBroj = MojBrojFactory.load(username, transaction); break;
+            case Skocko: skocko = SkockoFactory.load(username, transaction);
+            case Spojnice: spojnice = SpojniceFactory.load(username, transaction); break;
+            case Asocijacije: asocijacije = AsocijacijeFactory.load(username, transaction); break;
             default: break;
         }
     }
 
     private void startNextGame() {
-        waitingPeriod = false;
-
         if(gameIsMultiplayer) {
-            if((currentGame == GameView.Skocko || currentGame == GameView.Spojnice) && !roundTwo) {
+            if(roundOneOfTwo()) {
                 beginRoundTwo();
                 return;
             }
             roundTwo = false;
         }
 
-        blueIsPlaying = true;
-        currentView = currentGame = nextGame;
-
-        switch(currentGame){
-            case Slagalica: nextGame = GameView.MojBroj; timer = 60; break;
-            case MojBroj: nextGame = GameView.Skocko; timer = 60; break;
-            case Skocko: nextGame = GameView.Spojnice; timer = 60; break;
-            case Spojnice: nextGame = GameView.Asocijacije; timer = 60; break;
-            case Asocijacije: nextGame = GameView.GameOver; timer = 240; break;
+        switch(nextView){
+            case Slagalica: currentGame = slagalica; break;
+            case MojBroj: currentGame = mojBroj; break;
+            case Skocko: currentGame = skocko; break;
+            case Spojnice: currentGame = spojnice; break;
+            case Asocijacije: currentGame = asocijacije; break;
             case GameOver: if(gameIsMultiplayer) gameOverMultiplayer(); else gameOverSingleplayer();
         }
+
+        currentView = nextView;
+        nextView = currentGame.getNextView();
+        timer = currentGame.getGameLength();
+        waitingPeriod = false;
+        blueIsPlaying = true;
     }
 
     private void beginRoundTwo() {
         roundTwo = true;
         blueIsPlaying = false;
         timer = 60;
-        currentView = currentGame;
+        currentView = currentGame.getMyView();
     }
 
     private void updateTimer() {
@@ -515,37 +491,17 @@ public class GameController implements Serializable {
         lastTimerTick = currentTimerTick;
     }
 
-    private int getMyCurrentGamePoints() {
-        switch (currentGame) {
-            case Slagalica: return PointsManager.slagalica(slagalica);
-            case MojBroj: return PointsManager.mojBroj(mojBroj);
-            case Skocko: return skocko.getPoints();
-            case Spojnice: return spojnice.getPoints();
-            case Asocijacije: return asocijacije.getPoints();
-            default: return 0;
-        }
-    }
-
     private void updatePointsInDatabase(int myPoints) {
-        try(Transaction transaction = new Transaction()) {
-            GameVariables gameVars = null;
+        if (roundOneOfTwo()) return;
+        try (Transaction transaction = new Transaction()) {
+            GameVariables gameVars = currentGame.getMyVars(transaction, username);
 
-            switch (currentGame) {
-                case MojBroj:
-                    gameVars = myMojBrojVars(transaction, username);
-                    ((MojBrojVariables) gameVars).setDifference(mojBroj.getDifference(), playerIsBlue);
-                    break;
-                case Slagalica: gameVars = mySlagalicaVars(transaction, username); break;
-                case Skocko: if (roundTwo) { gameVars = mySkockoVars(transaction, username); } break;
-                case Spojnice: if (roundTwo) { gameVars = mySpojniceVars(transaction, username); } break;
-                case Asocijacije: gameVars = myAsocijacijeVars(transaction, username); break;
-                default: break;
+            if (currentGame.getMyView() == GameView.MojBroj) {
+                ((MojBrojVariables) gameVars).setDifference(mojBroj.getDifference(), playerIsBlue);
             }
 
-            if (gameVars != null) {
-                if (playerIsBlue) gameVars.setPointsBlue(myPoints);
-                else gameVars.setPointsRed(myPoints);
-            }
+            if (playerIsBlue) gameVars.setPointsBlue(myPoints);
+            else gameVars.setPointsRed(myPoints);
         }
     }
 
@@ -591,25 +547,15 @@ public class GameController implements Serializable {
 
     private void runWhileInAlternatingGame() {
         try(Transaction transaction = new Transaction()) {
-            switch (currentGame) {
-                case Skocko: {
-                    if (skocko.isSidePlayer() == null) {
-                        skocko.setSidePlayer(!myTurn());
-                    }
-                    runWhileInSidePlayerGame(skocko, mySkockoVars(transaction, username));
-                    break;
+            if(currentGame.getMyView() == GameView.Asocijacije) {
+                runWhileInAsocijacije(myAsocijacijeVars(transaction, username));
+            }
+            else {
+                SidePlayerGame spGame = (SidePlayerGame) currentGame;
+                if (spGame.isSidePlayer() == null) {
+                    spGame.setSidePlayer(!myTurn());
                 }
-                case Spojnice: {
-                    if (spojnice.isSidePlayer() == null) {
-                        spojnice.setSidePlayer(!myTurn());
-                    }
-                    runWhileInSidePlayerGame(spojnice, mySpojniceVars(transaction, username));
-                    break;
-                }
-                case Asocijacije: {
-                    runWhileInAsocijacije(myAsocijacijeVars(transaction, username));
-                    break;
-                }
+                runWhileInSidePlayerGame(spGame, spGame.getMyVars(transaction, username));
             }
         }
     }
@@ -705,5 +651,9 @@ public class GameController implements Serializable {
 
     private boolean myTurn() {
         return blueIsPlaying == playerIsBlue;
+    }
+
+    private boolean roundOneOfTwo() {
+        return TWO_ROUND_GAMES.contains(currentGame.getMyView()) && !roundTwo;
     }
 }
