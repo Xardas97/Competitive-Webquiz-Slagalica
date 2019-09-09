@@ -84,7 +84,10 @@ public class LoginController implements Serializable {
     }
 
     public void changePassword(){
-        if(!password.equals(confirmPassword)){ errorMessage = "Passwords don't match"; return; }
+        if(!password.equals(confirmPassword)) {
+            errorMessage = "Passwords don't match";
+            return;
+        }
         
         try(Transaction transaction = new Transaction()) {
             User user = transaction.get(User.class, username);

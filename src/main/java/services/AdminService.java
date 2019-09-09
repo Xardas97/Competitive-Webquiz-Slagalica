@@ -1,20 +1,23 @@
 package services;
 
+import entities.Asocijacija;
+import entities.RegistrationRequest;
+import entities.WordPairs;
 import org.hibernate.query.Query;
 import util.Transaction;
 
 import java.util.List;
 
 public class AdminService {
-    public static List getWordPairs() {
+    public static List<WordPairs> getWordPairs() {
         try(Transaction transaction = new Transaction()) {
-            return transaction.createQuery("FROM WordPairs").list();
+            return transaction.createQuery("FROM WordPairs", WordPairs.class).list();
         }
     }
 
-    public static List getRegRequests() {
+    public static List<RegistrationRequest> getRegRequests() {
         try(Transaction transaction = new Transaction()) {
-            return transaction.createQuery("FROM RegistrationRequest").list();
+            return transaction.createQuery("FROM RegistrationRequest", RegistrationRequest.class).list();
         }
     }
 
@@ -24,9 +27,9 @@ public class AdminService {
         removeFromRequestsQuery.executeUpdate();
     }
 
-    public static List getAsocijacije() {
+    public static List<Asocijacija> getAsocijacije() {
         try(Transaction transaction = new Transaction()){
-            return transaction.createQuery("FROM Asocijacija").list();
+            return transaction.createQuery("FROM Asocijacija", Asocijacija.class).list();
         }
     }
 }

@@ -57,7 +57,7 @@ public class MultiplayerRanklistController implements Serializable{
     }
 
     private  void initUsers(LocalDate startDate, List<MultiplayerScores> users){
-        List results = getGames(startDate);
+        List<FinishedGame> results = getGames(startDate);
         
         Map<String, MultiplayerScoresCounter> scoreCounters;
         scoreCounters = makeCountersAndInitUsers(results, users);
@@ -65,49 +65,51 @@ public class MultiplayerRanklistController implements Serializable{
         countScores(users, scoreCounters);
         sort(users);
     }
+
+    private List<FinishedGame> getGames(LocalDate startDate){
+        List<FinishedGame> results;
+        try(Transaction transaction = new Transaction()) {
+            Query<FinishedGame> query = transaction.createQuery("FROM FinishedGame WHERE gameDate>=?", FinishedGame.class);
+            results = query.setParameter(0, startDate).list();
+        }
+
+        return results;
+    }
     
-    private Map<String, MultiplayerScoresCounter> makeCountersAndInitUsers(List games, List<MultiplayerScores> users) {
+    private Map<String, MultiplayerScoresCounter> makeCountersAndInitUsers(List<FinishedGame> games,
+                                                                           List<MultiplayerScores> users) {
         Map<String, MultiplayerScoresCounter> scoreCounters = new HashMap<>();
-        
-        for (Object result : games) {
-            if (result instanceof FinishedGame) {
-                FinishedGame game = (FinishedGame) result;
-                if (!scoreCounters.containsKey(game.getBlue())) {
-                    users.add(new MultiplayerScores(game.getBlue()));
-                    scoreCounters.put(game.getBlue(), new MultiplayerScoresCounter());
-                }
-                if (!scoreCounters.containsKey(game.getRed())) {
-                    users.add(new MultiplayerScores(game.getRed()));
-                    scoreCounters.put(game.getRed(), new MultiplayerScoresCounter());
-                }
-                switch (game.getGameResult()) {
-                    case 1:
-                        scoreCounters.get(game.getBlue()).incVictories();
-                        scoreCounters.get(game.getRed()).incDefeats();
-                        break;
-                    case 0:
-                        scoreCounters.get(game.getBlue()).incDraws();
-                        scoreCounters.get(game.getRed()).incDraws();
-                        break;
-                    case -1:
-                        scoreCounters.get(game.getBlue()).incDefeats();
-                        scoreCounters.get(game.getRed()).incVictories();
-                        break;
-                }
+
+        for (FinishedGame game : games) {
+            String bluePlayer = game.getBlue();
+            String redPlayer = game.getRed();
+
+            if (!scoreCounters.containsKey(bluePlayer)) {
+                users.add(new MultiplayerScores(bluePlayer));
+                scoreCounters.put(bluePlayer, new MultiplayerScoresCounter());
+            }
+            if (!scoreCounters.containsKey(redPlayer)) {
+                users.add(new MultiplayerScores(redPlayer));
+                scoreCounters.put(redPlayer, new MultiplayerScoresCounter());
+            }
+
+            switch (game.getGameResult()) {
+                case 1:
+                    scoreCounters.get(bluePlayer).incVictories();
+                    scoreCounters.get(redPlayer).incDefeats();
+                    break;
+                case 0:
+                    scoreCounters.get(bluePlayer).incDraws();
+                    scoreCounters.get(redPlayer).incDraws();
+                    break;
+                case -1:
+                    scoreCounters.get(bluePlayer).incDefeats();
+                    scoreCounters.get(redPlayer).incVictories();
+                    break;
             }
         }
         
         return scoreCounters;
-    }
-    
-    private List getGames(LocalDate startDate){
-        List results;
-        try(Transaction transaction = new Transaction()) {
-            Query query = transaction.createQuery("FROM FinishedGame WHERE gameDate>=?");
-            results = query.setParameter(0, startDate).list();
-        }
-        
-        return results;
     }
     
     private void countScores(List<MultiplayerScores> scores, Map<String,MultiplayerScoresCounter> scoreCounters) {

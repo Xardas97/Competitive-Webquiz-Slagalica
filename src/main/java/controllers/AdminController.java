@@ -78,38 +78,30 @@ public class AdminController implements Serializable{
     }
 
     private void initAsocijacije(){
-        List asocijacijeResult = AdminService.getAsocijacije();
+        List<Asocijacija> asocijacijeResult = AdminService.getAsocijacije();
 
         asocijacijeMap = new HashMap<>();
         asocijacije = new LinkedList<>();
 
-        for (Object object : asocijacijeResult) {
-            Asocijacija asocijacija = (Asocijacija) object;
+        for (Asocijacija asocijacija : asocijacijeResult) {
             asocijacije.add(asocijacija.getResultEnd().split("-")[0]);
             asocijacijeMap.put(asocijacija.getResultEnd().split("-")[0], asocijacija);
         }
     }
 
     private void initSpojnice(){
-        List spojniceResult = getWordPairs();
+        List<WordPairs> spojniceResult = getWordPairs();
         
         spojniceMap = new HashMap<>();
         spojnice = new LinkedList<>();
-        for (Object object : spojniceResult) {
-            WordPairs wordPairs = (WordPairs) object;
+        for (WordPairs wordPairs : spojniceResult) {
             spojnice.add(wordPairs.getText());
             spojniceMap.put(wordPairs.getText(), wordPairs);
         }
     }
     
     private void initRequests(){
-        List requestsResult = getRegRequests();
-        
-        requests = new LinkedList<>();
-        for(Object request: requestsResult)
-            if(request instanceof RegistrationRequest) {
-                requests.add((RegistrationRequest)request);
-            }
+        requests = getRegRequests();
     }
     
     public void accept(RegistrationRequest request){

@@ -26,8 +26,9 @@ import util.Transaction;
 @ManagedBean
 @ViewScoped
 @Named(value="SingleplayerRanklistController")
-public class SingleplayerRanklistController implements Serializable{
-    private List<SingleplayerGame> games;
+public class SingleplayerRanklistController implements Serializable {
+    private static final int NUM_PLAYERS_TO_SHOW = 10;
+    private List<SingleplayerGame> topGames;
     private SingleplayerGame myGame;
     private int myPlacement = 0;
     
@@ -36,40 +37,40 @@ public class SingleplayerRanklistController implements Serializable{
         String username = SessionManager.getUser().getUsername();
         Date today = new Date();
 
-        Object myGameObject;
-        List results;
+        List<SingleplayerGame> allGamesFromToday;
+
         try(Transaction transaction = new Transaction()) {
+            Query<SingleplayerGame> query =
+                    transaction.createQuery("FROM SingleplayerGame WHERE gameDate=? ORDER BY points DESC",
+                            SingleplayerGame.class);
+            allGamesFromToday = query.setParameter(0, today).list();
 
-            Query query = transaction.createQuery("FROM SingleplayerGame WHERE gameDate=? ORDER BY points DESC");
-            results = query.setParameter(0, today).list();
-
-            query = transaction.createQuery("FROM SingleplayerGame WHERE gameDate=? AND username=?");
-            myGameObject = query.setParameter(0, today).setParameter(1, username).uniqueResult();
+            query = transaction
+                    .createQuery("FROM SingleplayerGame WHERE gameDate=? AND username=?", SingleplayerGame.class);
+            myGame = query.setParameter(0, today).setParameter(1, username).uniqueResult();
         }
         
-        
-        boolean iPlayed = false; //if the user has played today
-        if(myGameObject!=null){
-            iPlayed = true;
-            myGame = (SingleplayerGame) myGameObject;
-        }
-        
-        short gameIndex = 1;
+        boolean iPlayed = (myGame != null);
         boolean foundMyself = false;
         boolean addMore = true;
-        games = new LinkedList<>();
-        for(Object result: results)
-            if(result instanceof SingleplayerGame){
-                SingleplayerGame game = (SingleplayerGame) result;
-                if(iPlayed && game.getUsername().equals(username)) {
-                    myGame = game;
-                    myPlacement = gameIndex;
-                    foundMyself = true;
-                }
-                if(gameIndex++>10) addMore = false;
-                if(addMore) games.add(game);
-                if(!addMore && (foundMyself || !iPlayed)) break;
+        short currentPosition = 1;
+
+        topGames = new LinkedList<>();
+        for (SingleplayerGame game : allGamesFromToday) {
+            if (iPlayed && game.getUsername().equals(username)) {
+                myPlacement = currentPosition;
+                foundMyself = true;
             }
+            if (currentPosition++ > NUM_PLAYERS_TO_SHOW) {
+                addMore = false;
+            }
+            if (addMore) {
+                topGames.add(game);
+            }
+            if (!addMore && (foundMyself || !iPlayed)) {
+                break;
+            }
+        }
     }
 
     public SingleplayerGame getMyGame() {
@@ -80,8 +81,8 @@ public class SingleplayerRanklistController implements Serializable{
         return myPlacement;
     }
 
-    public List<SingleplayerGame> getGames() {
-        return games;
+    public List<SingleplayerGame> getTopGames() {
+        return topGames;
     }
     
     public boolean isPlacementBelowTen(){

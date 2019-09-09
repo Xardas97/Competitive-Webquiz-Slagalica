@@ -49,8 +49,8 @@
                 <h:outputText value="#{GameController.getSkockoFeedbackRow(5)}"/>
             </p:panelGrid>
             <p:panelGrid columns="2" style="margin-top: 2%; margin-bottom: 2%;">
-                <h:outputText value="#{GameController.getSkockoRow(6)}" rendered="#{GameController.modeMultiplayer}"/>
-                <h:outputText value="#{GameController.getSkockoFeedbackRow(6)}" rendered="#{GameController.modeMultiplayer}"/>
+                <h:outputText value="#{GameController.getSkockoRow(6)}" rendered="#{GameController.multiplayer}"/>
+                <h:outputText value="#{GameController.getSkockoFeedbackRow(6)}" rendered="#{GameController.multiplayer}"/>
             </p:panelGrid>
             <p:commandButton value="Reset" action="#{GameController.resetSkockoRow()}" update="skocko"
                              disabled="#{!GameController.skockoResetButtonAvailable}"/>

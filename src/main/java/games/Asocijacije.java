@@ -97,7 +97,7 @@ public class Asocijacije {
         if(forBlue){
             setRevealedByArray(variables.getRevealedByBlue(), blueRevealed);
         }
-        else{
+        else {
             setRevealedByArray(variables.getRevealedByRed(), redRevealed);
         }
     }

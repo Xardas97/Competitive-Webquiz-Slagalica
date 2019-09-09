@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.ManagedBean;
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
@@ -28,12 +29,46 @@ import util.Transaction;
 @Named(value="MyGamesController")
 public class MyGamesController implements Serializable{
     static class MyGameElement{
-        String opponent;
-        String side;
-        int myPoints;
-        int opponentPoints;
-        String result;
-        Date date;
+        private String opponent;
+        private String side;
+        private int myPoints;
+        private int opponentPoints;
+        private String result;
+        private Date date;
+
+        MyGameElement(FinishedGame game, boolean playerIsBlue) {
+            date = game.getGameDate();
+            if(playerIsBlue) {
+                initAsBlue(game);
+            }
+            else{
+                initAsRed(game);
+            }
+        }
+
+        private void initAsBlue(FinishedGame game) {
+            side = "Blue";
+            opponent = game.getRed();
+            myPoints = game.getPointsBlue();
+            opponentPoints = game.getPointsRed();
+            switch(game.getGameResult()){
+                case 1: result = "Victory"; break;
+                case -1: result = "Defeat"; break;
+                default: result = "Draw";
+            }
+        }
+
+        private void initAsRed(FinishedGame game) {
+            side = "Red";
+            opponent = game.getBlue();
+            myPoints = game.getPointsRed();
+            opponentPoints = game.getPointsBlue();
+            switch(game.getGameResult()){
+                case 1: result = "Defeat"; break;
+                case -1: result = "Victory"; break;
+                default: result = "Draw";
+            }
+        }
 
         public String getOpponent() {
             return opponent;
@@ -64,52 +99,19 @@ public class MyGamesController implements Serializable{
     
     @PostConstruct
     public void initGames(){
-        String username = SessionManager.getUser().getUsername();
+        String myUsername = SessionManager.getUser().getUsername();
 
-        List results;
+        List<FinishedGame> results;
         try(Transaction transaction = new Transaction()) {
-            Query query = transaction.createQuery("FROM FinishedGame WHERE blue=? OR red=?");
-             results = query.setParameter(0, username).setParameter(1, username).list();
+            Query<FinishedGame> query =
+                    transaction.createQuery("FROM FinishedGame WHERE blue=? OR red=?", FinishedGame.class);
+            results = query.setParameter(0, myUsername).setParameter(1, myUsername).list();
         }
 
-        
         myGames = new LinkedList<>();
-        for(Object result: results)
-            if(result instanceof FinishedGame){
-                FinishedGame game = (FinishedGame) result;
-                MyGameElement gameElement = new MyGameElement(); 
-                gameElement.date = game.getGameDate();
-                if(game.getBlue().equals(username)) {
-                    initGameElementAsBlue(game, gameElement);
-                }
-                else{
-                    initGameElementAsRed(game, gameElement);
-                }
-                myGames.add(gameElement);
-            }
-    }
-
-    private void initGameElementAsRed(FinishedGame game, MyGameElement gameElement) {
-        gameElement.side = "Red";
-        gameElement.opponent = game.getBlue();
-        gameElement.myPoints = game.getPointsRed();
-        gameElement.opponentPoints = game.getPointsBlue();
-        switch(game.getGameResult()){
-            case 1: gameElement.result = "Defeat"; break;
-            case -1: gameElement.result = "Victory"; break;
-            default: gameElement.result = "Draw";
-        }
-    }
-
-    private void initGameElementAsBlue(FinishedGame game, MyGameElement gameElement) {
-        gameElement.side = "Blue";
-        gameElement.opponent = game.getRed();
-        gameElement.myPoints = game.getPointsBlue();
-        gameElement.opponentPoints = game.getPointsRed();
-        switch(game.getGameResult()){
-            case 1: gameElement.result = "Victory"; break;
-            case -1: gameElement.result = "Defeat"; break;
-            default: gameElement.result = "Draw";
+        for (FinishedGame game : results) {
+            boolean iWasBlue = game.getBlue().equals(myUsername);
+            myGames.add(new MyGameElement(game, iWasBlue));
         }
     }
 

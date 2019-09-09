@@ -31,16 +31,10 @@ public class GamelistController implements Serializable{
     
     @PostConstruct
     public void initGames(){
-        List results;
         try(Transaction transaction = new Transaction()) {
-            NativeQuery query = transaction.createSQLQuery("SELECT * FROM gamequeue");
-            results = query.list();
+            NativeQuery<String> query = transaction.createNativeQuery("SELECT * FROM gamequeue", String.class);
+            games = query.list();
         }
-
-        games = new LinkedList<>();
-        for(Object result: results)
-            if(result instanceof String)
-                games.add((String)result);
     }
     
     public String join(String bluePlayer){

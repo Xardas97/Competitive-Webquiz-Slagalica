@@ -9,5 +9,8 @@
         <module name="PIASlagalicaJSF" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="pia-kviskoteka-rest-service" target="11" />
+    </bytecodeTargetLevel>
   </component>
 </project>

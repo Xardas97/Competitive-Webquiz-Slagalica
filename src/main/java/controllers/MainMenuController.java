@@ -56,7 +56,7 @@ public class MainMenuController implements Serializable{
             return "menu";
         }
         // if the player has already played the game today
-        else if(playedToday!=null){
+        else if(playedToday!=null) {
             errorMessage = "Game of the Day already played!";
             return "menu";
         }

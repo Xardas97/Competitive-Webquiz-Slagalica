@@ -22,6 +22,10 @@ public class Transaction implements AutoCloseable {
         session.close();
     }
 
+    public <T> NativeQuery<T> createNativeQuery(String query, Class<T> type){
+        return session.createNativeQuery(query, type);
+    }
+
     public NativeQuery createSQLQuery(String s) {
         return session.createSQLQuery(s);
     }
@@ -40,6 +44,10 @@ public class Transaction implements AutoCloseable {
 
     public Query createQuery(String var1){
         return session.createQuery(var1);
+    }
+
+    public <T> Query<T> createQuery(String var1, Class<T> type){
+        return session.createQuery(var1, type);
     }
 
     public CriteriaBuilder getCriteriaBuilder() {

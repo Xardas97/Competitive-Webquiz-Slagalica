@@ -12,7 +12,7 @@
                 <h:outputStylesheet library="css" name="style.css"/>
 
                 <h:form><p:commandButton value="Return to Main Menu" action="#{MainMenuController.returnToMenu()}" ajax="false"/></h:form>
-                <p:dataTable value="#{SingleplayerRanklistController.games}" var="game" rowIndexVar="index"
+                <p:dataTable value="#{SingleplayerRanklistController.topGames}" var="game" rowIndexVar="index"
                              rowStyleClass = "#{SingleplayerRanklistController.isMyRow(game) ? 'colored' : ''}"
                              style="margin-top: 2%;">
                     <p:column headerText="Placement">
