@@ -15,7 +15,7 @@ import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
 import org.hibernate.query.Query;
-import util.SessionManager;
+import util.HttpSessionManager;
 import util.Transaction;
 
 /**
@@ -34,7 +34,7 @@ public class SingleplayerRanklistController implements Serializable {
     
     @PostConstruct
     public void initGames(){
-        String username = SessionManager.getUser().getUsername();
+        String username = HttpSessionManager.getUser().getUsername();
         Date today = new Date();
 
         List<SingleplayerGame> allGamesFromToday;

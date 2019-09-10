@@ -9,47 +9,45 @@ import util.Transaction;
 public class MojBroj implements Game {
     private static final GameView MY_GAME = GameView.MojBroj;
     private static final GameView NEXT_GAME = GameView.Skocko;
+
     private static final String[] OPERATIONS = {"+", "-", "*", "/", "(", ")"};
+
     private final boolean[] buttons = {true, true, true, true, true, true};
-    private final String[] numbers;
-    private String word = "";
-    private String message = "";
-    private boolean lastUsedNumber = false;
+    private final String[] possibleNumbers;
+    private String chosenExpression = "";
+    private boolean lastUsedIsNumber = false;
     private int difference;
+    private String outputMessage = "";
 
-    MojBroj(String numbers) {
-        this.numbers = numbers.split(" ");
-    }
-
-    MojBroj(String[] numbers) {
-        this.numbers = numbers;
+    MojBroj(String[] possibleNumbers) {
+        this.possibleNumbers = possibleNumbers;
     }
 
     public void chooseNumberOrOperation(int i){
-        message = "";
+        outputMessage = "";
         if(i<7) {
-            if(lastUsedNumber) {
-                message = "Can't use a Number again!";
+            if(lastUsedIsNumber) {
+                outputMessage = "Can't use a Number again!";
                 return;
             }
-            word += numbers[i];
+            chosenExpression += possibleNumbers[i];
             buttons[i-1] = false;
-            lastUsedNumber = true;
+            lastUsedIsNumber = true;
         }
         else{
-            word += OPERATIONS[i-7];
-            lastUsedNumber = false;
+            chosenExpression += OPERATIONS[i-7];
+            lastUsedIsNumber = false;
         }
     }
 
     public void reset(){
         for(int i=0; i<6; i++) buttons[i] = true;
-        word = "";
-        message = "";
+        chosenExpression = "";
+        outputMessage = "";
     }
 
     public String getNumberOrOperation(int i){
-        if(i<7) return numbers[i];
+        if(i<7) return possibleNumbers[i];
         else return OPERATIONS[i-7];
     }
 
@@ -59,16 +57,16 @@ public class MojBroj implements Game {
     }
 
     public String getDesiredNumber() {
-        return numbers[0];
+        return possibleNumbers[0];
     }
 
 
-    public String getMessage() {
-        return message;
+    public String getOutputMessage() {
+        return outputMessage;
     }
 
-    public String getWord() {
-        return word;
+    public String getChosenExpression() {
+        return chosenExpression;
     }
 
     public int getDifference() {
@@ -95,7 +93,7 @@ public class MojBroj implements Game {
     }
 
     @Override
-    public GameView getMyView() {
+    public GameView getView() {
         return MY_GAME;
     }
 }

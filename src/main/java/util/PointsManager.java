@@ -24,7 +24,7 @@ public class PointsManager {
 
         try(Transaction transaction = new Transaction()) {
             if (transaction.createQuery("FROM AcceptableWord WHERE word=?")
-                    .setParameter(0, slagalica.getWord())
+                    .setParameter(0, slagalica.getChosenWord())
                     .uniqueResult() == null) wordAcceptable = false;
         }
         
@@ -33,10 +33,10 @@ public class PointsManager {
     }
     
     public static int mojBroj(MojBroj mojBroj){
-        if(mojBroj.getWord()==null || "".equals(mojBroj.getWord())) return 0;
+        if(mojBroj.getChosenExpression()==null || "".equals(mojBroj.getChosenExpression())) return 0;
         try{
             ScriptEngine scriptEngine = new ScriptEngineManager().getEngineByName("javascript");
-            int result = (int) scriptEngine.eval(mojBroj.getWord());
+            int result = (int) scriptEngine.eval(mojBroj.getChosenExpression());
             mojBroj.setDifference(Math.abs(result - Integer.parseInt(mojBroj.getDesiredNumber())));
             return 10;
         } catch (ScriptException ex) {

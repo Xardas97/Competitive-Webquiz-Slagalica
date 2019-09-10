@@ -63,12 +63,12 @@ public class GameController implements Serializable {
 
     @PostConstruct
     private void init() {
-        nextView = GameView.Slagalica;
         currentView = GameView.Waiting;
-        username = SessionManager.getUser().getUsername();
-        gameIsMultiplayer = "multiplayer".equals(SessionManager.getGameMode());
-        playerIsBlue = !gameIsMultiplayer || "blue".equals(SessionManager.getPlayerSide());
-        lastTimerTick=0;
+        nextView = GameView.Slagalica;
+        username = HttpSessionManager.getUser().getUsername();
+        gameIsMultiplayer = "multiplayer".equals(HttpSessionManager.getGameMode());
+        playerIsBlue = !gameIsMultiplayer || "blue".equals(HttpSessionManager.getPlayerSide());
+        lastTimerTick = 0;
 
         if(playerIsBlue) {
             if (gameIsMultiplayer) {
@@ -100,7 +100,7 @@ public class GameController implements Serializable {
     private void runWhileInGame(){
         updateTimer();
         // if it's one of the games where players alternate call alternatingGamesTick() and exit
-        if(gameIsMultiplayer && !waitingPeriod && ALTERNATING_GAMES.contains(currentGame.getMyView())) {
+        if(gameIsMultiplayer && !waitingPeriod && ALTERNATING_GAMES.contains(currentGame.getView())) {
             runWhileInAlternatingGame();
             return;
         }
@@ -122,20 +122,18 @@ public class GameController implements Serializable {
                 prepareNextMultiplayerGameData();
             }
         } else {
-            gamePoints.add(new GamePoints(currentGame.getMyView(), myPoints));
+            gamePoints.add(new GamePoints(currentGame.getView(), myPoints));
             startNextGame();
         }
     }
 
     /**
      * Gets periodically called while we are waiting for the next game.
-     * In multiplayer:
      * If both players are ready it changes to the next game.
-     * If it's the end of the game Blue updates the database.
      */
     private void tryToStartNextGame() {
-        boolean dataSynchronized = synchronizeGameData();
-        if (dataSynchronized) {
+        boolean playersSynchronized = synchronizePlayersAndData();
+        if (playersSynchronized) {
             startNextGame();
         }
     }
@@ -161,7 +159,7 @@ public class GameController implements Serializable {
     }
 
     public String getSlagalicaWord() {
-        return slagalica.getWord();
+        return slagalica.getChosenWord();
     }
 
     /*
@@ -185,11 +183,11 @@ public class GameController implements Serializable {
     }
 
     public String getMojBrojWord() {
-        return mojBroj.getWord();
+        return mojBroj.getChosenExpression();
     }
 
     public String getMojBrojMessage() {
-        return mojBroj.getMessage();
+        return mojBroj.getOutputMessage();
     }
 
     /*
@@ -315,11 +313,11 @@ public class GameController implements Serializable {
     }
 
     public String[] getOpenedResults() {
-        return asocijacije.getOpenedResults();
+        return asocijacije.getInputs();
     }
 
     public void setOpenedResults(String[] openedResults) {
-        asocijacije.setOpenedResults(openedResults);
+        asocijacije.setInputs(openedResults);
     }
 
     public String getAsocijacijePlaceholders(int i) {
@@ -413,32 +411,32 @@ public class GameController implements Serializable {
      * Red lets blue pass once he loads the prepared data
      * @return true if synchronization is successful.
      */
-    private boolean synchronizeGameData() {
-        try(Transaction transaction = new Transaction()) {
-                ActiveGame game = myActiveGame(transaction, username);
+    private boolean synchronizePlayersAndData() {
+        try (Transaction transaction = new Transaction()) {
+            ActiveGame game = myActiveGame(transaction, username);
 
-                boolean otherPlayerReady = playerIsBlue? game.isRedReady(): game.isBlueReady();
-                if (otherPlayerReady) {
-                    loadPoints(transaction);
+            boolean otherPlayerReady = playerIsBlue ? game.isRedReady() : game.isBlueReady();
+            if (otherPlayerReady) {
+                loadPointsFromDatabase(transaction);
 
-                    if(playerIsBlue) {
-                        game.setRedReady(false);
-                    }
-                    else {
-                        game.setBlueReady(false);
-                        loadPreparedGameData(transaction);
-                        game.setRedReady(true);
-                    }
+                if (playerIsBlue) {
+                    game.setRedReady(false);
+                } else {
+                    game.setBlueReady(false);
+                    loadPreparedGameData(transaction);
+                    game.setRedReady(true);
                 }
-            return otherPlayerReady;
+                return true;
+            }
+            return false;
         }
     }
 
-    private void loadPoints(Transaction transaction) {
+    private void loadPointsFromDatabase(Transaction transaction) {
         if(currentGame != null && !roundOneOfTwo()) {
             GameVariables gameVars = currentGame.getMyVars(transaction, username);
             gameVars.fixPoints();
-            gamePoints.add(new GamePoints(currentGame.getMyView(), gameVars.getPointsBlue(), gameVars.getPointsRed()));
+            gamePoints.add(new GamePoints(currentGame.getView(), gameVars.getPointsBlue(), gameVars.getPointsRed()));
         }
     }
 
@@ -482,7 +480,7 @@ public class GameController implements Serializable {
         roundTwo = true;
         blueIsPlaying = false;
         timer = 60;
-        currentView = currentGame.getMyView();
+        currentView = currentGame.getView();
     }
 
     private void updateTimer() {
@@ -496,7 +494,7 @@ public class GameController implements Serializable {
         try (Transaction transaction = new Transaction()) {
             GameVariables gameVars = currentGame.getMyVars(transaction, username);
 
-            if (currentGame.getMyView() == GameView.MojBroj) {
+            if (currentGame.getView() == GameView.MojBroj) {
                 ((MojBrojVariables) gameVars).setDifference(mojBroj.getDifference(), playerIsBlue);
             }
 
@@ -547,10 +545,10 @@ public class GameController implements Serializable {
 
     private void runWhileInAlternatingGame() {
         try(Transaction transaction = new Transaction()) {
-            if(currentGame.getMyView() == GameView.Asocijacije) {
+            if(currentGame instanceof  Asocijacije) {
                 runWhileInAsocijacije(myAsocijacijeVars(transaction, username));
             }
-            else {
+            if(currentGame instanceof SidePlayerGame) {
                 SidePlayerGame spGame = (SidePlayerGame) currentGame;
                 if (spGame.isSidePlayer() == null) {
                     spGame.setSidePlayer(!myTurn());
@@ -562,9 +560,8 @@ public class GameController implements Serializable {
 
     private void runWhileInAsocijacije(AsocijacijeVariables asocijacijeVars) {
         if (!myTurn()) {
-            asocijacije.loadOpenedArray(asocijacijeVars.getOpened());
-            asocijacije.loadRevealedByArray(asocijacijeVars, !blueIsPlaying);
-            blueIsPlaying = asocijacijeVars.isBluePlaying();
+            asocijacije.loadVariables(asocijacijeVars, !blueIsPlaying);
+            blueIsPlaying = asocijacijeVars.isBlueIsPlaying();
 
             if (asocijacije.isCompleted()) {
                 startTheWaitingPeriod();
@@ -579,12 +576,11 @@ public class GameController implements Serializable {
         }
     }
 
-    @SuppressWarnings("SimplifiableConditionalExpression")
     private void synchronizeAsocijacijeData() {
         try(Transaction transaction = new Transaction()) {
             AsocijacijeVariables asocijacijeVars = myAsocijacijeVars(transaction, username);
-            blueIsPlaying = asocijacije.wasHit()? blueIsPlaying: !blueIsPlaying;
-            asocijacijeVars.updateVariables(asocijacije.getOpened(), asocijacije.getRevealedByPlayer(playerIsBlue), blueIsPlaying);
+            asocijacijeVars.updateVariables(asocijacije, playerIsBlue);
+            blueIsPlaying = asocijacijeVars.isBlueIsPlaying();
         }
     }
 
@@ -608,7 +604,6 @@ public class GameController implements Serializable {
             SidePlayerGame game,BiFunction<Transaction, String, SidePlayerGameVariables> getMyVars) {
         try(Transaction transaction = new Transaction()) {
             SidePlayerGameVariables variables = getMyVars.apply(transaction, username);
-
             variables.updateVariables(game, playerIsBlue);
 
             if (game.isCompleted()) {
@@ -630,7 +625,8 @@ public class GameController implements Serializable {
     }
 
     private void finishSidePlayerGame(SidePlayerGame game, SidePlayerGameVariables variables) {
-        if (game.isSidePlayer() != null? game.isSidePlayer() : false) {
+        boolean isSidePlayer = game.isSidePlayer() != null? game.isSidePlayer() : false;
+        if (isSidePlayer) {
             variables.setSidePlayerDone(true);
             startTheWaitingPeriod();
         } else {
@@ -654,6 +650,6 @@ public class GameController implements Serializable {
     }
 
     private boolean roundOneOfTwo() {
-        return TWO_ROUND_GAMES.contains(currentGame.getMyView()) && !roundTwo;
+        return TWO_ROUND_GAMES.contains(currentGame.getView()) && !roundTwo;
     }
 }

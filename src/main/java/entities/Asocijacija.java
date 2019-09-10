@@ -19,7 +19,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name="asocijacije")
-public class Asocijacija implements Serializable{
+public class Asocijacija implements Serializable {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)        
     int idA;

@@ -8,23 +8,21 @@ import util.Transaction;
 public class Spojnice implements SidePlayerGame {
     private static final GameView MY_GAME = GameView.Spojnice;
     private static final GameView NEXT_GAME = GameView.Asocijacije;
+
+    private final String gameName;
+    private final String[][] pairs;
+    private final int[] pairPositions;
     private int activeLeft = 0;
-    private String gameName;
-    private final String[][] words = new String[10][2];
     private final boolean[] hitByBlue = new boolean[10];
     private final boolean[] hitByRed = new boolean[10];
-    private final int[] pairPosition = new int[10];
     private int points = 0;
     private Boolean sidePlayer = null;
-    private boolean completed = false;
 
-    Spojnice() {
+    Spojnice(String[][] pairs, int[] pairPositions, String gameName) {
+        this.pairs = pairs;
+        this.pairPositions = pairPositions;
+        this.gameName = gameName;
         init();
-    }
-
-    Spojnice(WordPairs pairs) {
-        init();
-        gameName = pairs.getText();
     }
 
     private void init() {
@@ -36,7 +34,7 @@ public class Spojnice implements SidePlayerGame {
     public void submitPair(int i, boolean playerBlue) {
         if(sidePlayer == null) sidePlayer = Boolean.FALSE;
 
-        if(activeLeft == pairPosition[i]) {
+        if(activeLeft == pairPositions[i]) {
             points++;
             if(playerBlue) hitByBlue[activeLeft] = true;
             else hitByRed[activeLeft] = true;
@@ -61,39 +59,31 @@ public class Spojnice implements SidePlayerGame {
         }
     }
 
-    public String hitByMeAsString(boolean playerBlue) {
+    public String getHitByMeAsString(boolean playerBlue) {
         StringBuilder builder = new StringBuilder();
-        completed = true;
-        boolean[] hitByMe;
-        if(playerBlue) hitByMe = hitByBlue;
-        else hitByMe = hitByRed;
-        if (hitByMe[0]) {
-            builder.append("1");
-        } else {
-            builder.append("0");
-            completed = false;
-        }
-        for (int cnt = 1; cnt < 10; cnt++) {
-            builder.append(" ");
-            if (hitByMe[cnt]) {
+
+        boolean[] hitByMe = playerBlue? hitByBlue: hitByRed;
+
+        for (boolean b : hitByMe) {
+            if (b) {
                 builder.append("1");
-            } else {
-                builder.append("0");
-                completed = false;
             }
+            else {
+                builder.append("0");
+            }
+            builder.append(" ");
         }
+        builder.deleteCharAt(builder.length() - 1);
+
         return builder.toString();
     }
 
     private void setHitByArray(String hitByAsString, boolean[] hitBy) {
-        completed = true;
         String[] temp = hitByAsString.split(" ");
-        for (int i = 0; i < 10; i++)
-            if ("1".equals(temp[i])) hitBy[i] = true;
-            else {
-                hitBy[i] = false;
-                completed = false;
-            }
+
+        for (int i = 0; i < 10; i++){
+            hitBy[i] = "1".equals(temp[i]);
+        }
     }
 
     public String colorLeft(int i){
@@ -104,13 +94,13 @@ public class Spojnice implements SidePlayerGame {
     }
 
     public String colorRight(int i){
-        if(hitByBlue[pairPosition[i]]) return "coloredBlue";
-        if(hitByRed[pairPosition[i]]) return "coloredRed";
+        if(hitByBlue[pairPositions[i]]) return "coloredBlue";
+        if(hitByRed[pairPositions[i]]) return "coloredRed";
         return "";
     }
 
     public boolean buttonDisabled(int i){
-        return hitByBlue[pairPosition[i]] || hitByRed[pairPosition[i]]
+        return hitByBlue[pairPositions[i]] || hitByRed[pairPositions[i]]
                 || activeLeft>9;
     }
 
@@ -124,24 +114,12 @@ public class Spojnice implements SidePlayerGame {
         this.sidePlayer = sidePlayer;
     }
 
-    public void setGameName(String gameName) {
-        this.gameName = gameName;
-    }
-
     public String getRightWord(int i){
-        return words[pairPosition[i]][1];
+        return pairs[pairPositions[i]][1];
     }
 
     public String getLeftWord(int i){
-        return words[i][0];
-    }
-
-    public String[][] getWords() {
-        return words;
-    }
-
-    public int[] getPairPosition() {
-        return pairPosition;
+        return pairs[i][0];
     }
 
     public String getGameName() {
@@ -150,7 +128,12 @@ public class Spojnice implements SidePlayerGame {
 
     @Override
     public boolean isCompleted() {
-        return completed;
+        for(int i=0; i<10; i++) {
+            if(!hitByBlue[i] && !hitByRed[i]){
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -180,7 +163,7 @@ public class Spojnice implements SidePlayerGame {
     }
 
     @Override
-    public GameView getMyView() {
+    public GameView getView() {
         return MY_GAME;
     }
 }

@@ -9,7 +9,7 @@ public interface Game {
     int getPoints();
     GameVariables getMyVars(Transaction t, String username);
     GameView getNextView();
-    GameView getMyView();
+    GameView getView();
     default int getGameLength() {
         return DEFAULT_GAME_LENGTH;
     }

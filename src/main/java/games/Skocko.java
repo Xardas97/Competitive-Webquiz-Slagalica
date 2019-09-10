@@ -9,7 +9,9 @@ import util.Transaction;
 public class Skocko implements SidePlayerGame {
     private static final GameView MY_GAME = GameView.Skocko;
     private static final GameView NEXT_GAME = GameView.Spojnice;
+
     private static final String[] SYMBOLS = {"Pik", "Tref", "Herc", "Karo", "Zvezda", "Skocko"};
+
     private final String[] secretCombo;
     private String[][] input;
     private int[][] feedback;
@@ -18,11 +20,6 @@ public class Skocko implements SidePlayerGame {
     private int points = 0;
     private Boolean sidePlayer = null;
     private boolean completed;
-
-    Skocko(String secretCombo) {
-        this.secretCombo = secretCombo.split(" ");
-        init();
-    }
 
     Skocko(String[] secretCombo) {
         this.secretCombo = secretCombo;
@@ -109,41 +106,42 @@ public class Skocko implements SidePlayerGame {
 
     public String getRowAsString(int row) {
         StringBuilder builder = new StringBuilder();
-        for(int i=0; i<4; i++)
+
+        for(int i=0; i < input[row].length; i++){
             builder.append(input[row][i]).append(" ");
+        }
         builder.deleteCharAt(builder.length() - 1);
+
         return builder.toString();
     }
 
     public String getInputAsString() {
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < 7; i++) {
-            for (int j = 0; j < 4; j++) {
-                builder.append(input[i][j]);
-                if (j != 3) {
-                    builder.append(" ");
-                }
+
+        for (String[] strings : input) {
+            for (String string : strings) {
+                builder.append(string).append(" ");
             }
-            if (i != 6) {
-                builder.append("-");
-            }
+            builder.deleteCharAt(builder.length() - 1);
+            builder.append("-");
         }
+        builder.deleteCharAt(builder.length() - 1);
+
         return builder.toString();
     }
 
     public String getFeedbackAsString() {
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < 7; i++) {
-            for (int j = 0; j < 2; j++) {
-                builder.append(feedback[i][j]);
-                if (j != 1) {
-                    builder.append(" ");
-                }
+
+        for (int[] ints : feedback) {
+            for (int anInt : ints) {
+                builder.append(anInt).append(" ");
             }
-            if (i != 6) {
-                builder.append("-");
-            }
+            builder.deleteCharAt(builder.length() - 1);
+            builder.append("-");
         }
+        builder.deleteCharAt(builder.length() - 1);
+
         return builder.toString();
     }
 
@@ -197,7 +195,7 @@ public class Skocko implements SidePlayerGame {
     }
 
     @Override
-    public GameView getMyView() {
+    public GameView getView() {
         return MY_GAME;
     }
 

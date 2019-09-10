@@ -28,7 +28,7 @@ import javax.inject.Named;
 
 import org.primefaces.model.UploadedFile;
 import org.primefaces.shaded.commons.io.FilenameUtils;
-import util.SessionManager;
+import util.HttpSessionManager;
 import util.Transaction;
 
 /**
@@ -142,7 +142,7 @@ public class LoginController implements Serializable {
         if(user!=null){
             if(PasswordManager.checkPassword(password, user.getPassword())){
                 //username and password accurate, we can log him in
-                SessionManager.setUser(user);
+                HttpSessionManager.setUser(user);
                 errorMessage = "";
                 switch(user.getType()){
                     case User: return "menu"+redirect;
@@ -158,7 +158,7 @@ public class LoginController implements Serializable {
     }
 
     public String logout(){
-        SessionManager.getSession().invalidate();
+        HttpSessionManager.getSession().invalidate();
         errorMessage = "";
         return "index"+redirect;
     }

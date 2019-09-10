@@ -9,10 +9,12 @@ public class Asocijacije implements Game {
     private static final GameView MY_GAME = GameView.Asocijacije;
     private static final GameView NEXT_GAME = GameView.GameOver;
     private static final int GAME_LENGTH = 240;
+
     private static final String[] PLACEHOLDERS = {"A", "B", "C", "D", "? ? ?"};
+
     private final String[] columns;
     private final String[][] results;
-    private String[] openedResults = {"", "", "", "", ""};
+    private String[] inputs = {"", "", "", "", ""};
     private final boolean[] opened;
     private final boolean[] blueRevealed = {false, false, false, false, false};
     private final boolean[] redRevealed = {false, false, false, false, false};
@@ -52,12 +54,12 @@ public class Asocijacije implements Game {
         if (wasHit) submitted = 4;
         else
             for (submitted = 0; submitted < 5; submitted++)
-                if (!(opened[16 + submitted] || "".equals(openedResults[submitted]))) break;
+                if (!(opened[16 + submitted] || "".equals(inputs[submitted]))) break;
 
         wasHit = false;
 
         if(submitted == 4) {
-            if (isCorrect(openedResults[4], results[4])) {
+            if (isCorrect(inputs[4], results[4])) {
                 points += 10;
                 myRevealArray[4] = true;
                 for (int i = 0; i < 4; i++)
@@ -69,7 +71,7 @@ public class Asocijacije implements Game {
             }
         }
         else {
-            if(submitted < 4 && isCorrect(openedResults[submitted], results[submitted])) {
+            if(submitted < 4 && isCorrect(inputs[submitted], results[submitted])) {
                 points += 5;
                 for(int i=submitted*4; i < (submitted + 1)*4; i++) opened[i] = true;
                 opened[16 + submitted] = true;
@@ -78,7 +80,7 @@ public class Asocijacije implements Game {
             }
         }
 
-        for (int i = 0; i < 5; i++) openedResults[i] = "";
+        for (int i = 0; i < 5; i++) inputs[i] = "";
 
         if (wasHit) fieldWasOpened = true;
     }
@@ -92,19 +94,20 @@ public class Asocijacije implements Game {
         return opened[i] || fieldWasOpened;
     }
 
-    public void loadOpenedArray(String openedAsString){
-        String[] temp = openedAsString.split(" ");
-        for (int i = 0; i < 21; i++)
-            if ("1".equals(temp[i])) opened[i] = true;
-    }
-
-    public void loadRevealedByArray(AsocijacijeVariables variables, boolean forBlue){
+    public void loadVariables(AsocijacijeVariables variables, boolean forBlue) {
+        setOpenedArray(variables.getOpened());
         if(forBlue){
             setRevealedByArray(variables.getRevealedByBlue(), blueRevealed);
         }
         else {
             setRevealedByArray(variables.getRevealedByRed(), redRevealed);
         }
+    }
+
+    private void setOpenedArray(String openedAsString){
+        String[] temp = openedAsString.split(" ");
+        for (int i = 0; i < 21; i++)
+            if ("1".equals(temp[i])) opened[i] = true;
     }
 
     public void openAll() {
@@ -156,12 +159,12 @@ public class Asocijacije implements Game {
         this.fieldWasOpened = fieldWasOpened;
     }
 
-    public String[] getOpenedResults() {
-        return openedResults;
+    public String[] getInputs() {
+        return inputs;
     }
 
-    public void setOpenedResults(String[] openedResults) {
-        this.openedResults = openedResults;
+    public void setInputs(String[] inputs) {
+        this.inputs = inputs;
     }
 
     public boolean[] getOpened() {
@@ -192,7 +195,7 @@ public class Asocijacije implements Game {
     }
 
     @Override
-    public GameView getMyView() {
+    public GameView getView() {
         return MY_GAME;
     }
 

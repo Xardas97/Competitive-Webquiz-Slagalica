@@ -13,7 +13,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
-import util.PreparationManager;
+
+import games.generators.MojBrojGenerator;
+import games.generators.SkockoGenerator;
+import games.generators.SlagalicaGenerator;
 
 /**
  *
@@ -25,27 +28,27 @@ import util.PreparationManager;
 public class GameOfTheDay implements Serializable{
     @Id
     @Temporal(javax.persistence.TemporalType.DATE)
-    private Date gameDate;
+    private Date date;
+
     private String letters;
     private String numbers;
     private String secretCombo;
     @OneToOne
     @JoinColumn(name="idWP")
-    private
-    WordPairs pairs;
+    private WordPairs pairs;
     @OneToOne
     @JoinColumn(name="idA")
-    private
-    Asocijacija asocijacija;
+    private Asocijacija asocijacija;
+
     private boolean played;
     
-    public GameOfTheDay(Date gameDate, WordPairs pairs, Asocijacija asocijacija) {
-        this.gameDate = gameDate;
+    public GameOfTheDay(Date date, WordPairs pairs, Asocijacija asocijacija) {
+        this.date = date;
         this.pairs = pairs;
         this.asocijacija = asocijacija;
-        letters = PreparationManager.generateSlagalica();
-        numbers = PreparationManager.generateMojBroj();
-        secretCombo = PreparationManager.generateSkocko();
+        letters = SlagalicaGenerator.generate();
+        numbers = MojBrojGenerator.generate();
+        secretCombo = SkockoGenerator.generate();
     }
     
     public GameOfTheDay() {}
@@ -58,16 +61,20 @@ public class GameOfTheDay implements Serializable{
         this.asocijacija = asocijacija;
     }
     
-    public Date getGameDate() {
-        return gameDate;
+    public Date getDate() {
+        return date;
     }
 
-    public void setGameDate(Date gameDate) {
-        this.gameDate = gameDate;
+    public void setDate(Date gameDate) {
+        this.date = gameDate;
     }
 
     public String getLetters() {
         return letters;
+    }
+
+    public String[] getLettersAsArray() {
+        return letters.split(" ");
     }
 
     public void setLetters(String letters) {
@@ -78,12 +85,20 @@ public class GameOfTheDay implements Serializable{
         return numbers;
     }
 
+    public String[] getNumbersAsArray() {
+        return numbers.split(" ");
+    }
+
     public void setNumbers(String numbers) {
         this.numbers = numbers;
     }
 
     public String getSecretCombo() {
         return secretCombo;
+    }
+
+    public String[] getSecretComboAsArray() {
+        return secretCombo.split(" ");
     }
 
     public void setSecretCombo(String secretCombo) {

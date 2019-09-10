@@ -14,7 +14,7 @@ import javax.annotation.PreDestroy;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
 import services.ActiveGameService;
-import util.SessionManager;
+import util.HttpSessionManager;
 import util.Transaction;
 
 /**
@@ -39,8 +39,8 @@ public class HostingController implements Serializable{
             if(game!=null) {
                 returnString="game?faces-redirect=true";
                 message="";
-                SessionManager.setGameMode("multiplayer");
-                SessionManager.setPlayerSide("blue");
+                HttpSessionManager.setGameMode("multiplayer");
+                HttpSessionManager.setPlayerSide("blue");
             }
         }
         return returnString;
@@ -67,7 +67,7 @@ public class HostingController implements Serializable{
     
     @PostConstruct
     public void initUsername(){
-        username = SessionManager.getUser().getUsername();
+        username = HttpSessionManager.getUser().getUsername();
     }
     
     public String getMessage() {

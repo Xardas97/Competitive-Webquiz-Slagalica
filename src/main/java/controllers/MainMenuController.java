@@ -16,7 +16,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
-import util.SessionManager;
+import util.HttpSessionManager;
 import util.Transaction;
 
 /**
@@ -32,7 +32,7 @@ public class MainMenuController implements Serializable{
     private String errorMessage = "";
     
     public String startGameOfTheDay(){
-        String username = SessionManager.getUser().getUsername();
+        String username = HttpSessionManager.getUser().getUsername();
         Date currentDate = new Date();
 
         GameOfTheDay gameOfTheDay;
@@ -62,7 +62,7 @@ public class MainMenuController implements Serializable{
         }
         
         errorMessage = "";
-        SessionManager.setGameMode("singleplayer");
+        HttpSessionManager.setGameMode("singleplayer");
         return "game"+redirect;
     }
     
@@ -98,7 +98,7 @@ public class MainMenuController implements Serializable{
     
     public boolean isGuest(){
         try{
-            SessionManager.getUser();
+            HttpSessionManager.getUser();
             return false;
         }
         catch(NullPointerException e) {

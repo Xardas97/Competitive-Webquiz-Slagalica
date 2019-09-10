@@ -9,7 +9,7 @@ import javax.servlet.http.HttpSession;
  *
  * @author Drazen
  */
-public class SessionManager {
+public class HttpSessionManager {
 
     public static HttpSession getSession() {
         return (HttpSession) FacesContext.getCurrentInstance()

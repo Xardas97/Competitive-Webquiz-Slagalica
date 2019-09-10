@@ -74,6 +74,10 @@ public class MojBrojVariables implements GameVariables, Serializable {
         return numbers;
     }
 
+    public String[] getNumbersAsArray() {
+        return numbers.split(" ");
+    }
+
     public void setNumbers(String numbers) {
         this.numbers = numbers;
     }

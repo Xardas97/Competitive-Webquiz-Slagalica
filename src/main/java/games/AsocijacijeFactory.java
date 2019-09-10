@@ -1,21 +1,28 @@
 package games;
 
 import entities.ActiveGame;
+import entities.Asocijacija;
 import entities.GameOfTheDay;
-import util.PreparationManager;
+import games.generators.AsocijacijeGenerator;
+import services.ActiveGameService;
 import util.Transaction;
 
 public class AsocijacijeFactory {
     public static Asocijacije create(GameOfTheDay game) {
-        return new Asocijacije(game.getAsocijacija());
+        Asocijacija asocijacija = game.getAsocijacija();
+
+        return new Asocijacije(asocijacija);
     }
 
-    public static Asocijacije create(ActiveGame game, Transaction t) {
-        return new Asocijacije(PreparationManager
-                .generateAsocijacije(t, game.getBlue(), game.getRed()));
+    public static Asocijacije create(ActiveGame game, Transaction transaction) {
+        Asocijacija asocijacija = AsocijacijeGenerator.generate(transaction, game.getBlue(), game.getRed());
+
+        return new Asocijacije(asocijacija);
     }
 
-    public static Asocijacije load(String username, Transaction t) {
-        return new Asocijacije(PreparationManager.loadAsocijacije(t, username));
+    public static Asocijacije load(String username, Transaction transaction) {
+        Asocijacija asocijacija = ActiveGameService.myAsocijacijeVars(transaction, username).getAsocijacija();
+
+        return new Asocijacije(asocijacija);
     }
 }

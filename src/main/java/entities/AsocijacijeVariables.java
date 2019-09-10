@@ -5,6 +5,8 @@
  */
 package entities;
 
+import games.Asocijacije;
+
 import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -27,7 +29,7 @@ public class AsocijacijeVariables implements GameVariables, Serializable{
     private String red;
     private int pointsBlue;
     private int pointsRed;
-    private boolean bluePlaying;
+    private boolean blueIsPlaying;
     private String revealedByBlue;
     private String revealedByRed;
     private String opened;
@@ -43,33 +45,55 @@ public class AsocijacijeVariables implements GameVariables, Serializable{
         pointsBlue = pointsRed = 0;
         revealedByBlue=revealedByRed="0 0 0 0 0";
         opened = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
-        bluePlaying = true;
+        blueIsPlaying = true;
     }
     
     public AsocijacijeVariables(){}
 
-    public void updateVariables(boolean[] opened, boolean[] revealedArray, boolean nextPlayer){
-        StringBuilder builder = new StringBuilder();
-        if(opened[0]) builder.append("1");
-        else builder.append("0");
-        for(int i=1; i<21; i++) 
-            if(opened[i]) builder.append(" ").append("1");
-            else builder.append(" ").append("0");
-        this.opened = builder.toString();
-        
-        builder = new StringBuilder();
-        if (revealedArray[0]) builder.append("1");
-        else builder.append("0"); 
-        for (int i = 1; i < 5; i++)
-            if (revealedArray[i]) builder.append(" ").append("1");
-            else builder.append(" ").append("0");
-            
-        if(bluePlaying) this.revealedByBlue = builder.toString();
-        else this.revealedByRed = builder.toString();
-        
-        bluePlaying = nextPlayer;
+    @SuppressWarnings("SimplifiableConditionalExpression")
+    public void updateVariables(Asocijacije asocijacije, boolean playerIsBlue){
+        setOpened(asocijacije.getOpened());
+        setRevealedByArray(asocijacije.getRevealedByPlayer(playerIsBlue));
+        blueIsPlaying = asocijacije.wasHit()? blueIsPlaying: !blueIsPlaying;
     }
-    
+
+    private void setRevealedByArray(boolean[] revealedArray) {
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < 5; i++) {
+            if (revealedArray[i]) {
+                builder.append("1");
+            } else {
+                builder.append("0");
+            }
+            builder.append(" ");
+        }
+        builder.deleteCharAt(builder.length() - 1);
+
+        if (blueIsPlaying) {
+            revealedByBlue = builder.toString();
+        } else {
+            revealedByRed = builder.toString();
+        }
+    }
+
+    private void setOpened(boolean[] opened) {
+        StringBuilder builder = new StringBuilder();
+
+        for(int i=0; i<21; i++) {
+            if(opened[i]) {
+                builder.append("1");
+            }
+            else {
+                builder.append("0");
+            }
+            builder.append(" ");
+        }
+        builder.deleteCharAt(builder.length() - 1);
+
+        this.opened = builder.toString();
+    }
+
     public String getBlue() {
         return blue;
     }
@@ -102,12 +126,12 @@ public class AsocijacijeVariables implements GameVariables, Serializable{
         this.pointsRed = pointsRed;
     }
 
-    public boolean isBluePlaying() {
-        return bluePlaying;
+    public boolean isBlueIsPlaying() {
+        return blueIsPlaying;
     }
 
-    public void setBluePlaying(boolean bluePlaying) {
-        this.bluePlaying = bluePlaying;
+    public void setBlueIsPlaying(boolean bluePlaying) {
+        this.blueIsPlaying = bluePlaying;
     }
 
     public String getRevealedByBlue() {

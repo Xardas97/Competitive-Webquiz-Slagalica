@@ -23,6 +23,7 @@ public class WordPairs implements Serializable{
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     int idWP;
+
     private String text;
     private String pairs;
 
@@ -53,6 +54,17 @@ public class WordPairs implements Serializable{
     }
 
     public String getPairs() {
+        return pairs;
+    }
+
+    public String[][] getPairsAsArrays() {
+        String[] pairsCombined = pairs.split("-");
+        String[][] pairs = new String[10][];
+
+        for(int i=0; i<10; i++){
+            pairs[i] = pairsCombined[i].split("/");
+        }
+
         return pairs;
     }
 

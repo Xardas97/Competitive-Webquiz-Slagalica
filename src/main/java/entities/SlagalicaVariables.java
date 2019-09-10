@@ -19,12 +19,12 @@ import javax.persistence.Table;
 @Table(name="game_slagalica")
 public class SlagalicaVariables implements GameVariables, Serializable{
     @Id
-    private
-    String red;
+    private String red;
     @Id
-    private
-    String blue;
+    private String blue;
+
     private String letters;
+
     private int pointsBlue;
     private int pointsRed;
 
@@ -65,6 +65,10 @@ public class SlagalicaVariables implements GameVariables, Serializable{
 
     public String getLetters() {
         return letters;
+    }
+
+    public String[] getLettersAsArray() {
+        return letters.split(" ");
     }
 
     public int getPointsBlue() {

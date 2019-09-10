@@ -19,15 +19,15 @@ import javax.persistence.Table;
 @Table(name="activegame")
 public class ActiveGame implements Serializable {
     @Id
-    private
-    String blue;
+    private String blue;
+
     @Id
-    private
-    String red;
+    private String red;
+
     private boolean blueReady;
     private boolean redReady;
 
-    public ActiveGame(){}
+    public ActiveGame() {}
     public ActiveGame(String blue, String red){
         this.blue = blue;
         this.red = red;

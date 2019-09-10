@@ -15,7 +15,7 @@ import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
 import org.hibernate.query.Query;
-import util.SessionManager;
+import util.HttpSessionManager;
 import util.Transaction;
 
 /**
@@ -98,7 +98,7 @@ public class MyGamesController implements Serializable{
     
     @PostConstruct
     public void initGames(){
-        String myUsername = SessionManager.getUser().getUsername();
+        String myUsername = HttpSessionManager.getUser().getUsername();
 
         List<FinishedGame> results;
         try(Transaction transaction = new Transaction()) {

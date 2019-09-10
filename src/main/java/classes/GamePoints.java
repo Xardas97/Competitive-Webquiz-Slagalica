@@ -14,12 +14,12 @@ public class GamePoints {
         this.red = red;
     }
 
-    public GamePoints(String game, int blue) {
-        this(game, blue, 0);
-    }
-
     public GamePoints(GameController.GameView game, int blue, int red) {
         this(game.name(), blue, red);
+    }
+
+    public GamePoints(String game, int blue) {
+        this(game, blue, 0);
     }
 
     public GamePoints(GameController.GameView game, int blue) {

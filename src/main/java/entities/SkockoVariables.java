@@ -72,6 +72,10 @@ public class SkockoVariables implements SidePlayerGameVariables, Serializable{
         return secretCombo;
     }
 
+    public String[] getSecretComboAsArray() {
+        return secretCombo.split(" ");
+    }
+
     public void setSecretCombo(String letters) {
         this.secretCombo = letters;
     }

@@ -101,10 +101,10 @@ public class SpojniceVariables implements SidePlayerGameVariables, Serializable{
     public void updateVariables(SidePlayerGame game, boolean forBlue) {
         if(game instanceof Spojnice){
             if(forBlue) {
-                setHitByBlue(((Spojnice) game).hitByMeAsString(true));
+                setHitByBlue(((Spojnice) game).getHitByMeAsString(true));
             }
             else {
-                setHitByRed(((Spojnice) game).hitByMeAsString(false));
+                setHitByRed(((Spojnice) game).getHitByMeAsString(false));
             }
         }
     }
@@ -132,6 +132,16 @@ public class SpojniceVariables implements SidePlayerGameVariables, Serializable{
 
     public String getPairPosition() {
         return pairPosition;
+    }
+
+    public int[] getPairPositionAsArray() {
+        String[] pairPositionStrings = pairPosition.split(" ");
+
+        int[] randomPositions = new int[10];
+        for(int i=0; i<10; i++) {
+            randomPositions[i] = Integer.parseInt(pairPositionStrings[i]);
+        }
+        return randomPositions;
     }
 
     public void setPairPosition(String pairPosition) {

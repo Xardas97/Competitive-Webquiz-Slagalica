@@ -9,20 +9,17 @@ import util.Transaction;
 public class Slagalica implements Game {
     private static final GameView MY_GAME = GameView.Slagalica;
     private static final GameView NEXT_GAME = GameView.MojBroj;
+
     private final boolean[] buttons = {true, true, true, true, true, true, true, true, true, true, true, true};
-    private final String[] letters;
-    private String word = "";
+    private final String[] possibleLetters;
+    private String chosenWord = "";
 
-    Slagalica(String letters) {
-        this.letters = letters.split(" ");
-    }
-
-    Slagalica(String[] letters) {
-        this.letters = letters;
+    Slagalica(String[] possibleLetters) {
+        this.possibleLetters = possibleLetters;
     }
 
     public void addLetter(int i){
-        word += letters[i];
+        chosenWord += possibleLetters[i];
         buttons[i] = false;
     }
 
@@ -30,7 +27,7 @@ public class Slagalica implements Game {
         for(int i=0; i<12; i++) {
             buttons[i] = true;
         }
-        word = "";
+        chosenWord = "";
     }
 
     public boolean buttonAvailable(int i){
@@ -38,15 +35,15 @@ public class Slagalica implements Game {
     }
 
     public String getLetter(int i) {
-        return letters[i];
+        return possibleLetters[i];
     }
 
     public boolean[] getButtons() {
         return buttons;
     }
 
-    public String getWord() {
-        return word;
+    public String getChosenWord() {
+        return chosenWord;
     }
 
     @Override
@@ -65,7 +62,7 @@ public class Slagalica implements Game {
     }
 
     @Override
-    public GameView getMyView() {
+    public GameView getView() {
         return MY_GAME;
     }
 }

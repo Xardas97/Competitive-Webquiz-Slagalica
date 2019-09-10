@@ -14,7 +14,7 @@ import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
 import org.hibernate.query.NativeQuery;
-import util.SessionManager;
+import util.HttpSessionManager;
 import util.Transaction;
 
 /**
@@ -37,7 +37,7 @@ public class GamelistController implements Serializable{
     }
     
     public String join(String bluePlayer){
-        User redPlayer = SessionManager.getUser();
+        User redPlayer = HttpSessionManager.getUser();
         ActiveGame game = new ActiveGame(bluePlayer, redPlayer.getUsername());
 
         try(Transaction transaction = new Transaction()) {
@@ -48,8 +48,8 @@ public class GamelistController implements Serializable{
             transaction.save(game);
         }
         
-        SessionManager.setPlayerSide("red");
-        SessionManager.setGameMode("multiplayer");
+        HttpSessionManager.setPlayerSide("red");
+        HttpSessionManager.setGameMode("multiplayer");
         
         return "game?faces-redirect=true";
     }
